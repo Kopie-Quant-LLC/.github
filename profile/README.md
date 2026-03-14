@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="KopieQuant_logo_1_transparent.jpg" width="140" alt="Kopie Quant logo" />
+  <img src="KopieQuant_logo_1_transparent.png" width="140" alt="Kopie Quant logo" />
 </p>
 
 <h1 align="center">Kopie Quant</h1>
@@ -72,7 +72,7 @@ To reuse the logo in your own docs inside this org, you can reference:
 
 ```html
 <p align="center">
-  <img src="KopieQuant_logo_1_transparent.jpg" width="120" alt="Kopie Quant logo" />
+  <img src="KopieQuant_logo_1_transparent.png" width="120" alt="Kopie Quant logo" />
 </p>
 ```
 
