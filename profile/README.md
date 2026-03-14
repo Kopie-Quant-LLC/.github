@@ -15,10 +15,14 @@
 
 ## 🔷 Kopie Quant in One Line
 
-Kopie Quant is the quant data utility for people who would rather ship ideas than babysit data pipelines.  
+Kopie Quant is the quant data utility for people who would rather ship ideas than babysit data pipelines.
 We exist to take you from "where do I get clean data?" to "here's my strategy" in a single hop.
 
 ---
+
+<p align="center">
+  <img src="kq_what_were_about.png" width="600" alt="What We're About banner" />
+</p>
 
 ## ✳️ What We're About
 
@@ -28,6 +32,10 @@ We exist to take you from "where do I get clean data?" to "here's my strategy" i
 - **Serving the whole stack** – students, indie quants, small funds, data scientists, and educators all get the same quality building blocks.
 
 ---
+
+<p align="center">
+  <img src="kq_mission.png" width="600" alt="Our Mission banner" />
+</p>
 
 ## 🧱 Our Mission
 
@@ -43,9 +51,13 @@ We focus on reliability, transparency, and reproducibility so you can focus on i
 
 ---
 
+<p align="center">
+  <img src="kq_longterm_vision.png" width="600" alt="Long-Term Vision banner" />
+</p>
+
 ## 🪜 Long-Term Vision
 
-Today, KQ is your "build-any-dataset" sidekick.  
+Today, KQ is your "build-any-dataset" sidekick.
 Tomorrow, it grows into a full **quant ecosystem** that keeps the same simple promise: clean data in, better research out.
 
 Planned directions include:
@@ -58,6 +70,10 @@ All of it stays grounded in the same core idea: if the data layer is rock solid,
 
 ---
 
+<p align="center">
+  <img src="kq_logo_variations.png" width="600" alt="Branding & Visuals banner" />
+</p>
+
 ## 🧩 Branding & Visuals
 
 Our visual system is intentionally minimal:
@@ -69,14 +85,15 @@ Our visual system is intentionally minimal:
   - App icon or favicon
 
 To reuse the logo in your own docs inside this org, you can reference:
-
 ```html
-<p align="center">
-  <img src="KopieQuant_logo_1_transparent.png" width="120" alt="Kopie Quant logo" />
-</p>
+<img src="KopieQuant_logo_1_transparent.png" width="140" alt="Kopie Quant logo" />
 ```
 
 ---
+
+<p align="center">
+  <img src="kq_stay_tuned.png" width="600" alt="Stay Tuned banner" />
+</p>
 
 ## 📢 Stay Tuned
 
