@@ -13,7 +13,7 @@
 
 ---
 
-## 🔷 Kopie Quant in One Line
+# 🔷 Kopie Quant in One Line
 
 Kopie Quant is the quant data utility for people who would rather ship ideas than babysit data pipelines.
 We exist to take you from "where do I get clean data?" to "here's my strategy" in a single hop.
@@ -24,7 +24,7 @@ We exist to take you from "where do I get clean data?" to "here's my strategy" i
   <img src="kq_what_were_about.png" width="600" alt="What We're About banner" />
 </p>
 
-## ✳️ What We're About
+# ✳️ What We're About
 
 - **Democratizing quant tools** – institutional-grade historical market data without the institutional gatekeeping.
 - **Killing data janitor work** – no more hunting for missing candles, fixing splits, or stitching together messy exports.
@@ -37,7 +37,7 @@ We exist to take you from "where do I get clean data?" to "here's my strategy" i
   <img src="kq_mission.png" width="600" alt="Our Mission banner" />
 </p>
 
-## 🧱 Our Mission
+# 🧱 Our Mission
 
 **Give every quant the same quality of data that top funds use — at a price and UX that feels modern, not legacy.**
 
@@ -55,7 +55,7 @@ We focus on reliability, transparency, and reproducibility so you can focus on i
   <img src="kq_longterm_vision.png" width="600" alt="Long-Term Vision banner" />
 </p>
 
-## 🪜 Long-Term Vision
+# 🪜 Long-Term Vision
 
 Today, KQ is your "build-any-dataset" sidekick.
 Tomorrow, it grows into a full **quant ecosystem** that keeps the same simple promise: clean data in, better research out.
@@ -74,7 +74,7 @@ All of it stays grounded in the same core idea: if the data layer is rock solid,
   <img src="kq_logo_variations.png" width="600" alt="Branding & Visuals banner" />
 </p>
 
-## 🧩 Branding & Visuals
+# 🧩 Branding & Visuals
 
 Our visual system is intentionally minimal:
 - High-contrast hexagon mark built around the **KQ** monogram
@@ -95,7 +95,7 @@ To reuse the logo in your own docs inside this org, you can reference:
   <img src="kq_stay_tuned.png" width="600" alt="Stay Tuned banner" />
 </p>
 
-## 📢 Stay Tuned
+# 📢 Stay Tuned
 
 We're building Kopie Quant in public. This page is our central hub — check back here for:
 - **Platform updates** and release announcements
