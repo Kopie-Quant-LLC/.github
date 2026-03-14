@@ -21,7 +21,7 @@ We exist to take you from "where do I get clean data?" to "here's my strategy" i
 ---
 
 <p align="center">
-  <img src="kq_what_were_about.png" width="600" alt="What We're About banner" />
+  <img src="kq_what _were_about.png" width="600" alt="What We're About banner" />
 </p>
 
 # ✳️ What We're About
