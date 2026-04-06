@@ -1,0 +1,43 @@
+# Reusable Node.js CI Workflow
+# Call from any KQ repo: uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-node-ci.yml@main
+# © Kopie Quant LLC
+
+name: Reusable Node CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        required: false
+        type: string
+        default: "20"
+      build-command:
+        description: "Build command to run"
+        required: false
+        type: string
+        default: "npm run build"
+
+jobs:
+  ci:
+    name: Lint · Build · Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Build
+        run: ${{ inputs.build-command }}
+
+      - name: Test
+        run: npm test --if-present

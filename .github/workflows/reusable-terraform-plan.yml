@@ -1,0 +1,49 @@
+# Reusable Terraform Plan Workflow
+# Call from any KQ repo: uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-terraform-plan.yml@main
+# © Kopie Quant LLC
+
+name: Reusable Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Path to Terraform configuration"
+        required: true
+        type: string
+      terraform-version:
+        description: "Terraform version"
+        required: false
+        type: string
+        default: "1.7"
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+
+jobs:
+  plan:
+    name: Format · Plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform-version }}
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsTerraformRole
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        working-directory: ${{ inputs.working-directory }}
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        working-directory: ${{ inputs.working-directory }}
+        run: terraform plan -no-color -input=false
