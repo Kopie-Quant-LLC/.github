@@ -1,5 +1,5 @@
 # Reusable Terraform Plan Workflow
-# Call from any KQ repo: uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-terraform-plan.yml@main
+# Call from any KQ repo: uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-terraform-plan.yml@v1.0.0
 # © Kopie Quant LLC
 
 name: Reusable Terraform Plan
@@ -20,9 +20,14 @@ on:
       AWS_ACCOUNT_ID:
         required: true
 
+permissions:
+  id-token: write
+  contents: read
+  security-events: write
+
 jobs:
   plan:
-    name: Format · Plan
+    name: Format · Validate · Lint · Security · Plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +48,51 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ inputs.working-directory }}
         run: terraform init -input=false
+
+      - name: Terraform Validate
+        working-directory: ${{ inputs.working-directory }}
+        run: terraform validate
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.53.0
+
+      - name: TFLint
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          tflint --init
+          tflint --format compact
+
+      - name: tfsec
+        uses: aquasecurity/tfsec-sarif-action@v0.1.4
+        with:
+          working_directory: ${{ inputs.working-directory }}
+          sarif_file: tfsec.sarif
+
+      - name: Upload tfsec SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: tfsec.sarif
+          category: tfsec
+
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: ${{ inputs.working-directory }}
+          framework: terraform
+          quiet: true
+          output_format: sarif
+          output_file_path: checkov.sarif
+          soft_fail: false
+
+      - name: Upload Checkov SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov.sarif/results_sarif.sarif
+          category: checkov
 
       - name: Terraform Plan
         working-directory: ${{ inputs.working-directory }}
