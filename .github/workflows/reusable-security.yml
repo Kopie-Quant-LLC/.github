@@ -1,0 +1,73 @@
+name: Reusable — Security Scans
+on:
+  workflow_call:
+    inputs:
+      language:
+        type: string
+        required: true   # 'python' | 'rust' | 'node' | 'none'
+      working-directory:
+        type: string
+        default: "."
+      docker-context:
+        type: string
+        default: ""
+      dockerfile:
+        type: string
+        default: "Dockerfile"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+
+  deps:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - if: inputs.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - if: inputs.language == 'python'
+        run: pip install pip-audit && pip-audit -r requirements.txt --strict
+      - if: inputs.language == 'rust'
+        uses: dtolnay/rust-toolchain@stable
+      - if: inputs.language == 'rust'
+        run: cargo install --locked cargo-audit && cargo audit
+      - if: inputs.language == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - if: inputs.language == 'node'
+        run: npm audit --audit-level=high || true
+
+  container:
+    if: inputs.docker-context != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f ${{ inputs.dockerfile }} -t scan-target:latest ${{ inputs.docker-context }}
+      - uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: scan-target:latest
+          format: sarif
+          output: trivy.sarif
+          severity: HIGH,CRITICAL
+          exit-code: 1
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy.sarif
