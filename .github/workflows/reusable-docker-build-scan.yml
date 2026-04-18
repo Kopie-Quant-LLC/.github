@@ -1,0 +1,76 @@
+name: Reusable — Docker Build + Trivy Scan
+on:
+  workflow_call:
+    inputs:
+      context:
+        type: string
+        default: "."
+      dockerfile:
+        type: string
+        default: "Dockerfile"
+      image-tag:
+        type: string
+        required: true
+      push:
+        type: boolean
+        default: false
+      ecr-repo:
+        type: string
+        default: ""
+      aws-role-arn:
+        type: string
+        default: ""
+      aws-region:
+        type: string
+        default: "us-east-1"
+    outputs:
+      image-uri:
+        value: ${{ jobs.build.outputs.image-uri }}
+
+permissions:
+  id-token: write
+  contents: read
+  security-events: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-uri: ${{ steps.final.outputs.uri }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS (for ECR push)
+        if: inputs.push
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.aws-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+      - id: ecr
+        if: inputs.push
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build
+        id: build
+        run: |
+          IMG="${{ inputs.image-tag }}"
+          if [ "${{ inputs.push }}" == "true" ]; then
+            IMG="${{ steps.ecr.outputs.registry }}/${{ inputs.ecr-repo }}:${{ inputs.image-tag }}"
+          fi
+          docker build -f ${{ inputs.dockerfile }} -t "$IMG" ${{ inputs.context }}
+          echo "uri=$IMG" >> "$GITHUB_OUTPUT"
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.build.outputs.uri }}
+          format: sarif
+          output: trivy.sarif
+          severity: HIGH,CRITICAL
+          exit-code: 1
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy.sarif
+      - name: Push (if enabled)
+        if: inputs.push
+        run: docker push ${{ steps.build.outputs.uri }}
+      - id: final
+        run: echo "uri=${{ steps.build.outputs.uri }}" >> "$GITHUB_OUTPUT"

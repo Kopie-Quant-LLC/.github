@@ -1,0 +1,103 @@
+name: Reusable — ECS Deploy (render-task-def + parked-aware)
+on:
+  workflow_call:
+    inputs:
+      aws-role-arn:
+        type: string
+        required: true
+      aws-region:
+        type: string
+        default: "us-east-1"
+      cluster:
+        type: string
+        required: true
+      service:
+        type: string
+        required: true
+      task-family:
+        type: string
+        required: true
+      container-name:
+        type: string
+        required: true
+      image:
+        type: string
+        required: true
+      health-url-ssm-param:
+        type: string
+        default: ""
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.aws-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download current task def
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ inputs.task-family }} \
+            --query taskDefinition > task-def.json
+
+      - name: Render new task def
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-def.json
+          container-name: ${{ inputs.container-name }}
+          image: ${{ inputs.image }}
+
+      - name: Detect parked service (desiredCount=0)
+        id: parked
+        run: |
+          DC=$(aws ecs describe-services --cluster ${{ inputs.cluster }} \
+            --services ${{ inputs.service }} --query 'services[0].desiredCount' --output text)
+          echo "desired=$DC" >> "$GITHUB_OUTPUT"
+          if [ "$DC" = "0" ]; then echo "mode=register-only" >> "$GITHUB_OUTPUT";
+          else echo "mode=deploy" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Register task def only (parked)
+        if: steps.parked.outputs.mode == 'register-only'
+        run: |
+          aws ecs register-task-definition --cli-input-json file://${{ steps.render.outputs.task-definition }}
+          echo "::notice::Service desiredCount=0 — registered new task def but did not deploy."
+
+      - name: Deploy (active)
+        id: deploy
+        if: steps.parked.outputs.mode == 'deploy'
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          service: ${{ inputs.service }}
+          cluster: ${{ inputs.cluster }}
+          wait-for-service-stability: true
+          wait-for-minutes: 10
+
+      - name: Health check
+        if: steps.parked.outputs.mode == 'deploy' && inputs.health-url-ssm-param != ''
+        run: |
+          URL=$(aws ssm get-parameter --name "${{ inputs.health-url-ssm-param }}" --query 'Parameter.Value' --output text)
+          for i in {1..10}; do
+            if curl -fsS "$URL"; then echo "healthy"; exit 0; fi
+            sleep 6
+          done
+          echo "::error::health check failed"; exit 1
+
+      - name: Rollback on failure
+        if: failure() && steps.deploy.outcome == 'failure'
+        run: |
+          PREV=$(aws ecs describe-task-definition --task-definition ${{ inputs.task-family }} \
+            --query 'taskDefinition.revision' --output text)
+          PREV=$((PREV - 1))
+          aws ecs update-service --cluster ${{ inputs.cluster }} \
+            --service ${{ inputs.service }} \
+            --task-definition ${{ inputs.task-family }}:$PREV \
+            --force-new-deployment

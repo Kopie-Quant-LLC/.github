@@ -1,0 +1,27 @@
+name: Reusable — Commit Trailer Enforcement
+on:
+  workflow_call:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Enforce Signed-off-by on every commit; ban AI co-authors
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+          FAIL=0
+          while IFS= read -r sha; do
+            MSG=$(git log -1 --format=%B "$sha")
+            if ! grep -qE '^Signed-off-by: ' <<<"$MSG"; then
+              echo "::error::commit $sha missing Signed-off-by"
+              FAIL=1
+            fi
+            if grep -qiE '^(Co-authored-by: .*(claude|gpt|copilot|cursor|perplexity|computer|assistant|anthropic|openai))' <<<"$MSG"; then
+              echo "::error::commit $sha has AI co-author trailer — not allowed"
+              FAIL=1
+            fi
+          done < <(git rev-list "$BASE..$HEAD")
+          exit $FAIL

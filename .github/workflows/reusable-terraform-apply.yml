@@ -1,0 +1,46 @@
+name: Reusable — Terraform Apply (from plan artifact)
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        required: true
+      aws-role-arn:
+        type: string
+        required: true
+      aws-region:
+        type: string
+        default: "us-east-1"
+      plan-artifact:
+        type: string
+        default: "tfplan"
+      terraform-version:
+        type: string
+        default: "1.9.5"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform-version }}
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.aws-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.plan-artifact }}
+          path: ${{ inputs.working-directory }}
+      - run: terraform init -input=false
+      - run: terraform apply -input=false -auto-approve tfplan
