@@ -1,0 +1,6 @@
+# Kopie Quant — .github Org-Level Code Ownership
+# Reusable workflows + org defaults. CTO owns.
+
+*                       @YXZYSME
+/workflow-templates/    @YXZYSME
+/.github/workflows/     @YXZYSME
