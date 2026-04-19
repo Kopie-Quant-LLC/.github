@@ -1,0 +1,82 @@
+name: Reusable — Static Site to S3 + CloudFront
+# Wave 3 W3-B0: extracts common static-deploy pattern used by kq-website
+# © Kopie Quant LLC
+
+on:
+  workflow_call:
+    inputs:
+      aws-role-arn:
+        type: string
+        required: true
+      aws-region:
+        type: string
+        default: "us-east-1"
+      s3-bucket:
+        type: string
+        required: true
+      cloudfront-distribution-ssm-param:
+        type: string
+        required: true
+      node-version:
+        type: string
+        default: "20"
+      build-command:
+        type: string
+        default: "npm run build"
+      build-output-dir:
+        type: string
+        default: "out"
+      install-command:
+        type: string
+        default: "npm ci"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: ${{ inputs.install-command }}
+
+      - name: Build
+        run: ${{ inputs.build-command }}
+
+      - name: Guard against empty build
+        run: |
+          if [ -z "$(ls -A ${{ inputs.build-output-dir }}/ 2>/dev/null)" ]; then
+            echo "::error::${{ inputs.build-output-dir }}/ is empty — refusing to sync and wipe the bucket"
+            exit 1
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.aws-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Resolve CloudFront distribution ID from SSM
+        id: cf
+        run: |
+          ID=$(aws ssm get-parameter --name "${{ inputs.cloudfront-distribution-ssm-param }}" --query Parameter.Value --output text)
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync ${{ inputs.build-output-dir }}/ s3://${{ inputs.s3-bucket }} --delete
+
+      - name: Invalidate CloudFront (full)
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.cf.outputs.id }} \
+            --paths '/*'
