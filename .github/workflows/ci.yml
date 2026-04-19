@@ -1,0 +1,13 @@
+name: CI — PR Gate
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  commit-trailer:
+    name: Commit Trailer Check
+    uses: ./.github/workflows/reusable-commit-trailer.yml
