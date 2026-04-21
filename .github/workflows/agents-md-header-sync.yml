@@ -1,0 +1,113 @@
+name: AGENTS.md Header Sync Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 14 * * 1'  # Monday 09:30 CDT
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync-check:
+    name: Check canonical header drift
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - kq-knowledge
+          - kq-terminal
+          - kq-admin
+          - kq-website
+          - kq-infra
+          - kq-forge-engine
+          - kq-victory-engine
+          - .github
+    steps:
+      - name: Checkout canonical source
+        uses: actions/checkout@v6
+        with:
+          repository: Kopie-Quant-LLC/kq-knowledge
+          token: ${{ secrets.KQ_SYNC_PAT }}
+          sparse-checkout: .kq/AGENTS-CANONICAL-HEADER.md
+          path: canonical
+
+      - name: Checkout target repo
+        uses: actions/checkout@v6
+        with:
+          repository: Kopie-Quant-LLC/${{ matrix.repo }}
+          token: ${{ secrets.KQ_SYNC_PAT }}
+          sparse-checkout: AGENTS.md
+          path: target
+
+      - name: Extract and compare header block
+        id: compare
+        run: |
+          CANONICAL="canonical/.kq/AGENTS-CANONICAL-HEADER.md"
+          TARGET="target/AGENTS.md"
+
+          if [ ! -f "$TARGET" ]; then
+            echo "status=missing" >> "$GITHUB_OUTPUT"
+            echo "::error::AGENTS.md not found in ${{ matrix.repo }}"
+            exit 0
+          fi
+
+          # Extract block between BEGIN/END markers from target
+          sed -n '/<!-- BEGIN KQ CANONICAL HEADER/,/<!-- END KQ CANONICAL HEADER/p' "$TARGET" > /tmp/target-block.md
+
+          if [ ! -s /tmp/target-block.md ]; then
+            echo "status=no-header" >> "$GITHUB_OUTPUT"
+            echo "::error::Canonical header markers not found in ${{ matrix.repo }}/AGENTS.md"
+            exit 0
+          fi
+
+          # Compare
+          if diff -q "$CANONICAL" /tmp/target-block.md > /dev/null 2>&1; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            echo "::notice::${{ matrix.repo }} — OK in sync"
+          else
+            echo "status=drift" >> "$GITHUB_OUTPUT"
+            diff -u "$CANONICAL" /tmp/target-block.md > /tmp/drift.diff || true
+            echo "::warning::${{ matrix.repo }} — DRIFT DETECTED"
+          fi
+
+      - name: Open drift issue (if needed)
+        if: steps.compare.outputs.status != 'ok'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.KQ_SYNC_PAT }}
+          script: |
+            const repo = '${{ matrix.repo }}';
+            const status = '${{ steps.compare.outputs.status }}';
+            const title = `AGENTS.md canonical header ${status}: ${repo}`;
+            const owner = 'Kopie-Quant-LLC';
+            const targetRepo = repo === '.github' ? '.github' : repo;
+
+            // Check for existing open issue with same title
+            const existing = await github.rest.issues.listForRepo({
+              owner,
+              repo: targetRepo,
+              state: 'open',
+              labels: 'agents-md-drift',
+              per_page: 100
+            });
+
+            const alreadyOpen = existing.data.find(i => i.title === title);
+            if (alreadyOpen) {
+              console.log(`Issue already open: #${alreadyOpen.number}`);
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner,
+              repo: targetRepo,
+              title,
+              body: `The AGENTS.md canonical header in \`${repo}\` is **${status}**.\n\n` +
+                    `Expected: matches \`kq-knowledge/.kq/AGENTS-CANONICAL-HEADER.md\`\n\n` +
+                    `Run the sync workflow manually to re-check:\n` +
+                    `\`\`\`bash\ngh workflow run agents-md-header-sync.yml --repo Kopie-Quant-LLC/.github\n\`\`\`\n\n` +
+                    `Opened automatically by the AGENTS.md Header Sync Check workflow.`,
+              labels: ['agents-md-drift']
+            });
