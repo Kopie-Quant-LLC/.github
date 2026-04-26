@@ -27,9 +27,9 @@ jobs:
           JULES_API_KEY: ${{ secrets.KQ_JULES_API_KEY }}
         run: |
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: Bearer $JULES_API_KEY" \
+            -H "X-Goog-Api-Key: $JULES_API_KEY" \
             -H "Content-Type: application/json" \
-            "https://jules.api.google.com/v1alpha/${{ inputs.session_id }}:approvePlan")
+            "https://jules.googleapis.com/v1alpha/${{ inputs.session_id }}:approvePlan")
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | sed '$d')
