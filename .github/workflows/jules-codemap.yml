@@ -102,12 +102,13 @@ jobs:
             -H "X-Goog-Api-Key: $JULES_API_KEY" \
             "https://jules.googleapis.com/v1alpha/sources")
 
+          # Exact match: source name must end with the full org/repo path
           SOURCE_NAME=$(echo "$SOURCES" | jq -r \
-            '.sources[] | select(.name | contains("Kopie-Quant-LLC/${{ matrix.repo }}")) | .name')
+            '.sources[] | select(.name | endswith("Kopie-Quant-LLC/${{ matrix.repo }}")) | .name')
 
           if [ -z "$SOURCE_NAME" ] || [ "$SOURCE_NAME" = "null" ]; then
             SOURCE_NAME=$(echo "$SOURCES" | jq -r \
-              '.sources[] | select(.id | contains("Kopie-Quant-LLC/${{ matrix.repo }}")) | .name')
+              '.sources[] | select(.id | endswith("Kopie-Quant-LLC/${{ matrix.repo }}")) | .name')
           fi
 
           if [ -z "$SOURCE_NAME" ] || [ "$SOURCE_NAME" = "null" ]; then
