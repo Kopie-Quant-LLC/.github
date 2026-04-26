@@ -48,7 +48,7 @@ jobs:
           if [ -n "$INPUT_REPO" ]; then
             echo "repos=[\"$INPUT_REPO\"]" >> "$GITHUB_OUTPUT"
           else
-            REPOS_JSON=$(echo "$ACTIVE_REPOS" | tr -s '[:space:]' '\n' | grep -v '^$' | jq -R . | jq -s .)
+            REPOS_JSON=$(echo "$ACTIVE_REPOS" | tr -s '[:space:]' '\n' | grep -v '^$' | jq -R . | jq -sc .)
             echo "repos=$REPOS_JSON" >> "$GITHUB_OUTPUT"
           fi
 
