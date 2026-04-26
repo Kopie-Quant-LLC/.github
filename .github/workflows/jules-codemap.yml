@@ -1,0 +1,247 @@
+name: Jules — Code-Map Sessions
+
+on:
+  schedule:
+    # Mon, Wed, Fri at 06:00 UTC (01:00 CDT)
+    - cron: '0 6 * * 1,3,5'
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'Single repo to map (leave blank for all active repos)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - kq-terminal
+          - kq-admin
+          - kq-website
+          - kq-knowledge
+          - kq-infra
+          - .github
+          - kq-knowledge-graph
+
+permissions:
+  contents: read
+
+env:
+  ACTIVE_REPOS: >-
+    kq-terminal
+    kq-admin
+    kq-website
+    kq-knowledge
+    kq-infra
+    .github
+    kq-knowledge-graph
+
+jobs:
+  resolve-matrix:
+    name: Resolve target repos
+    runs-on: ubuntu-latest
+    if: github.actor == 'YXZYSME' || github.event_name == 'schedule'
+    outputs:
+      repos: ${{ steps.matrix.outputs.repos }}
+    steps:
+      - name: Build matrix
+        id: matrix
+        run: |
+          INPUT_REPO="${{ inputs.target_repo }}"
+          if [ -n "$INPUT_REPO" ]; then
+            echo "repos=[\"$INPUT_REPO\"]" >> "$GITHUB_OUTPUT"
+          else
+            REPOS_JSON=$(echo "$ACTIVE_REPOS" | tr -s '[:space:]' '\n' | grep -v '^$' | jq -R . | jq -s .)
+            echo "repos=$REPOS_JSON" >> "$GITHUB_OUTPUT"
+          fi
+
+  create-sessions:
+    name: Map ${{ matrix.repo }}
+    needs: resolve-matrix
+    runs-on: ubuntu-latest
+    if: github.actor == 'YXZYSME' || github.event_name == 'schedule'
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        repo: ${{ fromJson(needs.resolve-matrix.outputs.repos) }}
+    steps:
+      - name: Anti-burst jitter
+        run: |
+          DELAY=$((RANDOM % 20 + 10))
+          echo "Waiting ${DELAY}s (anti-burst jitter)"
+          sleep "$DELAY"
+
+      - name: Build repo-specific restrictions
+        id: restrictions
+        run: |
+          case "${{ matrix.repo }}" in
+            kq-terminal)
+              echo 'block=Do not output any values from .env files, secrets, or API keys.' >> "$GITHUB_OUTPUT"
+              ;;
+            kq-infra)
+              echo 'block=Do not read .tf files for variable values. Map only the module directory structure and workflow files. Do not output AWS account IDs, resource IDs, state bucket names, or any secret values.' >> "$GITHUB_OUTPUT"
+              ;;
+            kq-knowledge)
+              echo 'block=Map the .kq/ directory contents and document hierarchy. This repo is the canonical knowledge source.' >> "$GITHUB_OUTPUT"
+              ;;
+            .github)
+              echo 'block=Focus on the reusable workflow inventory in .github/workflows/ and their input/output interfaces.' >> "$GITHUB_OUTPUT"
+              ;;
+            kq-knowledge-graph)
+              echo 'block=This repo is machine-generated. Perform a lightweight self-map of the maps/ data/ and docs/ directories.' >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo 'block=Standard analysis. No additional restrictions.' >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Resolve source ID
+        id: source
+        env:
+          JULES_API_KEY: ${{ secrets.KQ_JULES_API_KEY }}
+        run: |
+          SOURCES=$(curl -sf \
+            -H "X-Goog-Api-Key: $JULES_API_KEY" \
+            "https://jules.googleapis.com/v1alpha/sources")
+
+          SOURCE_NAME=$(echo "$SOURCES" | jq -r \
+            '.sources[] | select(.name | contains("Kopie-Quant-LLC/${{ matrix.repo }}")) | .name')
+
+          if [ -z "$SOURCE_NAME" ] || [ "$SOURCE_NAME" = "null" ]; then
+            SOURCE_NAME=$(echo "$SOURCES" | jq -r \
+              '.sources[] | select(.id | contains("Kopie-Quant-LLC/${{ matrix.repo }}")) | .name')
+          fi
+
+          if [ -z "$SOURCE_NAME" ] || [ "$SOURCE_NAME" = "null" ]; then
+            echo "::error::Source not found for ${{ matrix.repo }}"
+            echo "$SOURCES" | jq '.sources[].name' 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "source_name=$SOURCE_NAME" >> "$GITHUB_OUTPUT"
+          echo "Resolved: $SOURCE_NAME"
+
+      - name: Create Jules session
+        id: session
+        env:
+          JULES_API_KEY: ${{ secrets.KQ_JULES_API_KEY }}
+        run: |
+          REPO="${{ matrix.repo }}"
+          RESTRICTIONS="${{ steps.restrictions.outputs.block }}"
+
+          read -r -d '' PROMPT << 'PROMPT_EOF' || true
+          CONTEXT
+          You are working in the Kopie-Quant-LLC private repo REPO_PLACEHOLDER.
+          Read the AGENTS.md at the repo root before doing anything else.
+          Follow every rule in the "KQ Org-Wide Agent Rules" canonical header block.
+
+          AUTHORITY
+          - Operator: Sun YXZYS <sun@yxzys.me> (GitHub @YXZYSME)
+          - All commits must carry exactly: Signed-off-by: Sun YXZYS <sun@yxzys.me>
+          - No AI/bot/tool co-author trailers. No emoji in commits or PR bodies.
+
+          GOAL — PRODUCE ONE PR WITH ONE ARTIFACT
+
+          Create or update the file docs/code-map.json with a structured analysis of
+          this repository. The file must be valid JSON.
+
+          ANALYSIS INSTRUCTIONS
+          1. Entry Points: Find the main application entrypoints (e.g., main.py,
+             index.ts, main.rs, Makefile targets). List each with path, type
+             (application|cli|library|worker|script|workflow), and a 1-sentence description.
+          2. Public Interfaces: Find REST API routes, exported functions, CLI
+             commands, or reusable workflow definitions. List each with path, type
+             (rest-api|grpc|cli|exported-module|reusable-workflow|websocket), and description.
+          3. Dependencies:
+             - Internal: other Kopie-Quant-LLC repos this repo calls or imports from
+               (infer from imports, workflow references, API calls, environment vars).
+               List repo name, interface method, and description.
+             - External: packages from requirements.txt, package.json, Cargo.toml, etc.
+               List top 10 most significant (not every transitive dep). Include name,
+               version (from lock/manifest), and purpose.
+          4. Workflows: list every file in .github/workflows/ with its trigger events
+             and a 1-sentence purpose.
+          5. Agent Footprint: check for AGENTS.md (boolean), canonical header markers
+             (boolean + version string), .agent/ directory (boolean),
+             .github/copilot-instructions.md (boolean).
+
+          OUTPUT FORMAT
+          The file docs/code-map.json must contain exactly this structure:
+          {
+            "repo": "REPO_PLACEHOLDER",
+            "generatedAt": "<ISO 8601 timestamp>",
+            "generatedBy": "jules-codemap-v1",
+            "entryPoints": [ { "path": "...", "type": "...", "description": "..." } ],
+            "publicInterfaces": [ { "path": "...", "type": "...", "description": "..." } ],
+            "dependencies": {
+              "internal": [ { "repo": "...", "interface": "...", "description": "..." } ],
+              "external": [ { "name": "...", "version": "...", "purpose": "..." } ]
+            },
+            "workflows": [ { "file": "...", "triggers": ["..."], "purpose": "..." } ],
+            "agentFootprint": {
+              "hasAgentsMd": true,
+              "hasCanonicalHeader": true,
+              "headerVersion": "v1.0.0",
+              "hasDotAgent": false,
+              "hasCopilotInstructions": false
+            }
+          }
+
+          RESTRICTIONS_PLACEHOLDER
+
+          RULES
+          1. Output ONLY valid JSON in docs/code-map.json. No markdown wrapper.
+          2. If you cannot verify a claim, set the value to "unverified".
+          3. Do not read or output secrets, API keys, passwords, or .env contents.
+          4. If tests fail, summarize in 3 bullets and open the PR anyway.
+          5. Do not enter investigation loops. If you read a file twice, stop.
+
+          DELIVERABLE
+          One pull request titled:
+            chore(codemap): update REPO_PLACEHOLDER code-map v1
+          Assign @YXZYSME as reviewer. Do not self-merge.
+
+          STOP CONDITIONS
+          - If AGENTS.md is missing, stop and open an issue instead.
+          - If you read the same file more than twice, open the PR with what you have.
+          PROMPT_EOF
+
+          # Substitute placeholders
+          PROMPT="${PROMPT//REPO_PLACEHOLDER/$REPO}"
+          PROMPT="${PROMPT//RESTRICTIONS_PLACEHOLDER/$RESTRICTIONS}"
+
+          PROMPT_JSON=$(echo "$PROMPT" | jq -Rs .)
+
+          RESPONSE=$(curl -sf -X POST \
+            -H "X-Goog-Api-Key: $JULES_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"prompt\": $PROMPT_JSON,
+              \"sourceContext\": {
+                \"source\": \"${{ steps.source.outputs.source_name }}\",
+                \"githubRepoContext\": {
+                  \"startingBranch\": \"main\"
+                }
+              },
+              \"requirePlanApproval\": true,
+              \"automationMode\": \"AUTO_CREATE_PR\",
+              \"title\": \"Code-Map: $REPO\"
+            }" \
+            "https://jules.googleapis.com/v1alpha/sessions")
+
+          SESSION_ID=$(echo "$RESPONSE" | jq -r '.name')
+          SESSION_NUM=$(echo "$RESPONSE" | jq -r '.id')
+
+          if [ -z "$SESSION_ID" ] || [ "$SESSION_ID" = "null" ]; then
+            echo "::error::Failed to create session for $REPO"
+            echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
+            exit 1
+          fi
+
+          echo "### Code-Map Session: $REPO" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Session** | \`$SESSION_ID\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Repo** | $REPO |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **URL** | https://jules.google.com/task/$SESSION_NUM |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Status** | Awaiting plan approval |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
