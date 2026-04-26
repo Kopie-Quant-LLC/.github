@@ -1,0 +1,61 @@
+name: Jules — Approve Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      session_id:
+        description: 'Full session ID (e.g., sessions/12345678901234567890)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  approve:
+    name: Approve Jules plan
+    runs-on: ubuntu-latest
+    if: github.actor == 'YXZYSME'
+    steps:
+      - name: Validate actor gate
+        run: |
+          echo "✅ Actor gate passed: ${{ github.actor }}"
+
+      - name: Approve plan
+        id: approve
+        env:
+          JULES_API_KEY: ${{ secrets.KQ_JULES_API_KEY }}
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer $JULES_API_KEY" \
+            -H "Content-Type: application/json" \
+            "https://jules.api.google.com/v1alpha/${{ inputs.session_id }}:approvePlan")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "::error::Plan approval failed (HTTP $HTTP_CODE)"
+            echo "$BODY" | jq . 2>/dev/null || echo "$BODY"
+            exit 1
+          fi
+
+          echo "### Plan Approved" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Session** | \`${{ inputs.session_id }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **HTTP Status** | $HTTP_CODE |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo "$BODY" | jq . 2>/dev/null >> "$GITHUB_STEP_SUMMARY" || echo "$BODY" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # Slack notification — uncomment when KQ_SLACK_WEBHOOK is provisioned
+      # - name: Notify Slack
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.KQ_SLACK_WEBHOOK }}
+      #   run: |
+      #     curl -s -X POST "$SLACK_WEBHOOK" \
+      #       -H "Content-Type: application/json" \
+      #       -d "{\"text\": \"Jules plan approved\nSession: ${{ inputs.session_id }}\"}"
