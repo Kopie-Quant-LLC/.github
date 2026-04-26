@@ -46,16 +46,16 @@ jobs:
           SOURCE_NAME=$(echo "$SOURCES" | jq -r \
             '.sources[] | select(.githubRepo.owner == "Kopie-Quant-LLC" and .githubRepo.repo == "${{ inputs.target_repo }}") | .name')
 
-          # Fallback: try matching by id field pattern
+          # Fallback: try matching by name with exact suffix
           if [ -z "$SOURCE_NAME" ] || [ "$SOURCE_NAME" = "null" ]; then
             SOURCE_NAME=$(echo "$SOURCES" | jq -r \
-              '.sources[] | select(.name | contains("Kopie-Quant-LLC/${{ inputs.target_repo }}")) | .name')
+              '.sources[] | select(.name | endswith("Kopie-Quant-LLC/${{ inputs.target_repo }}")) | .name')
           fi
 
           # Fallback: try matching by id field
           if [ -z "$SOURCE_NAME" ] || [ "$SOURCE_NAME" = "null" ]; then
             SOURCE_NAME=$(echo "$SOURCES" | jq -r \
-              '.sources[] | select(.id | contains("Kopie-Quant-LLC/${{ inputs.target_repo }}")) | .name')
+              '.sources[] | select(.id | endswith("Kopie-Quant-LLC/${{ inputs.target_repo }}")) | .name')
           fi
 
           if [ -z "$SOURCE_NAME" ] || [ "$SOURCE_NAME" = "null" ]; then
