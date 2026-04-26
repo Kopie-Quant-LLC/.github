@@ -221,7 +221,7 @@ jobs:
                   \"startingBranch\": \"main\"
                 }
               },
-              \"requirePlanApproval\": true,
+              \"requirePlanApproval\": false,
               \"automationMode\": \"AUTO_CREATE_PR\",
               \"title\": \"Code-Map: $REPO\"
             }" \
@@ -243,5 +243,5 @@ jobs:
           echo "| **Session** | \`$SESSION_ID\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| **Repo** | $REPO |" >> "$GITHUB_STEP_SUMMARY"
           echo "| **URL** | https://jules.google.com/task/$SESSION_NUM |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| **Status** | Awaiting plan approval |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Status** | Auto-approved — executing |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
