@@ -19,6 +19,8 @@ on:
           - kq-infra
           - .github
           - kq-knowledge-graph
+          - kq-forge-engine
+          - kq-victory-engine
 
 permissions:
   contents: read
@@ -32,6 +34,8 @@ env:
     kq-infra
     .github
     kq-knowledge-graph
+    kq-forge-engine
+    kq-victory-engine
 
 jobs:
   resolve-matrix:
