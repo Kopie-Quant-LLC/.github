@@ -168,10 +168,16 @@ jobs:
       - name: Commit and push
         if: steps.diff.outputs.changed == 'true'
         working-directory: knowledge-graph
+        env:
+          GH_TOKEN: ${{ secrets.KQ_SYNC_PAT }}
         run: |
           BRANCH="chore/codemap-aggregate-$(date -u +%Y%m%d)"
           git config user.name "Sun YXZYS"
           git config user.email "sun@yxzys.me"
+
+          # Delete existing remote branch if it exists (from a previous run today)
+          git push origin --delete "$BRANCH" 2>/dev/null || true
+
           git checkout -b "$BRANCH"
           git commit -m "chore(maps): aggregate unified code-map
 

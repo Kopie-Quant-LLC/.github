@@ -40,7 +40,8 @@ jobs:
         run: |
           ./gitleaks detect --source . --report-format sarif --report-path gitleaks.sarif --exit-code 1 --no-banner
       - uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('gitleaks.sarif') != ''
+        continue-on-error: true
         with: { sarif_file: gitleaks.sarif }
 
   deps:
@@ -57,12 +58,17 @@ jobs:
       - if: inputs.language == 'python'
         run: |
           pip install pip-audit
-          pip-audit -r requirements.txt --format sarif --output pip-audit.sarif || true
+          pip-audit -r requirements.txt --output pip-audit.json --format json || true
         continue-on-error: true
-      - if: inputs.language == 'python' && always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: pip-audit.sarif
+      - name: Upload pip-audit results
+        if: inputs.language == 'python' && always()
+        run: |
+          if [ -f pip-audit.json ]; then
+            echo "pip-audit results:"
+            cat pip-audit.json | python -m json.tool | head -50
+          else
+            echo "No pip-audit output file found."
+          fi
       - if: inputs.language == 'rust'
         uses: dtolnay/rust-toolchain@stable
       - if: inputs.language == 'rust'
@@ -92,6 +98,7 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: 1
       - uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: trivy.sarif
