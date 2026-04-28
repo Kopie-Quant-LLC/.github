@@ -18,6 +18,8 @@ env:
     kq-infra
     .github
     kq-knowledge-graph
+    kq-forge-engine
+    kq-victory-engine
 
 jobs:
   aggregate:
@@ -197,7 +199,7 @@ jobs:
           COLLECTED=$(ls collected/ 2>/dev/null | wc -l | tr -d ' ')
           echo "### Code-Map Aggregation" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Repos collected:** $COLLECTED / 7" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Repos collected:** $COLLECTED / 9" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Changes detected:** ${{ steps.diff.outputs.changed }}" >> "$GITHUB_STEP_SUMMARY"
           for f in collected/*.json; do
             [ -f "$f" ] || continue
