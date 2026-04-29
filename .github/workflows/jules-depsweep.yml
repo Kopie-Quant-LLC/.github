@@ -189,7 +189,7 @@ jobs:
 
           PROMPT_JSON=$(echo "$FULL_PROMPT" | jq -Rs .)
 
-          RESPONSE=$(curl -sf -X POST \
+          RESPONSE=$(curl -s -X POST \
             -H "X-Goog-Api-Key: $JULES_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
@@ -202,17 +202,16 @@ jobs:
               },
               \"requirePlanApproval\": false,
               \"automationMode\": \"AUTO_CREATE_PR\",
-              \"title\": \"Depsweep: $CHARTER → $REPO ($TICKET)\",
-              \"labels\": [\"jules-helper\", \"slot:migration-scribe\", \"wave-3.5\", \"agent:kq-jules-depsweep\"]
+              \"title\": \"Depsweep: $CHARTER → $REPO ($TICKET)\"
             }" \
             "https://jules.googleapis.com/v1alpha/sessions")
 
-          SESSION_ID=$(echo "$RESPONSE" | jq -r '.name')
-          SESSION_NUM=$(echo "$RESPONSE" | jq -r '.id')
+          SESSION_ID=$(echo "$RESPONSE" | jq -r '.name' 2>/dev/null || echo "")
+          SESSION_NUM=$(echo "$RESPONSE" | jq -r '.id' 2>/dev/null || echo "")
 
           if [ -z "$SESSION_ID" ] || [ "$SESSION_ID" = "null" ]; then
             echo "::error::Failed to create sweep session for $REPO ($CHARTER)"
-            echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
+            echo "$RESPONSE"
             exit 1
           fi
 
