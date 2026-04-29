@@ -18,6 +18,13 @@ jobs:
             if ! grep -qE '^Signed-off-by: ' <<<"$MSG"; then
               echo "::error::commit $sha missing Signed-off-by"
               FAIL=1
+            else
+              SOB=$(grep -oP '^Signed-off-by: \K.*' <<< "$MSG" | head -1)
+              case "$SOB" in
+                "Sun YXZYS <yxzys@proton.me>"|"Sun YXZYS <sun@yxzys.me>"|"Sun YXZYS <sun@kopiequant.com>"|"Sun YXZYS"|"YXZYSME <215337890+YXZYSME@users.noreply.github.com>"|"Colby VK <c.vail@kopiequant.com>") ;;
+                *) echo "::error::commit $sha has unrecognized Signed-off-by identity: $SOB"
+                   FAIL=1 ;;
+              esac
             fi
             if grep -qiE '^(Co-authored-by: .*(claude|gpt|copilot|cursor|perplexity|computer|assistant|anthropic|openai))' <<<"$MSG"; then
               echo "::error::commit $sha has AI co-author trailer — not allowed"
