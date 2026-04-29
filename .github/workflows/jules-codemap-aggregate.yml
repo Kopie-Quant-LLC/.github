@@ -182,7 +182,7 @@ jobs:
           git commit -m "chore(maps): aggregate unified code-map
 
           Signed-off-by: Sun YXZYS <sun@yxzys.me>"
-          git push origin "$BRANCH"
+          git push -f origin "$BRANCH"
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Create PR
