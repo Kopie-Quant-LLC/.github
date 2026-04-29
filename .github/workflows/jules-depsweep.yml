@@ -157,6 +157,8 @@ jobs:
         id: session
         env:
           JULES_API_KEY: ${{ secrets.KQ_JULES_API_KEY }}
+          USER_PROMPT: ${{ inputs.prompt }}
+          SYSTEM_PROMPT: ${{ steps.sysprompt.outputs.system_prompt }}
         run: |
           REPO="${{ inputs.target_repo }}"
           CHARTER="${{ inputs.charter_id }}"
@@ -165,12 +167,12 @@ jobs:
 
           # Combine system prompt + user prompt into a single prompt payload
           # (Jules API uses a single prompt field)
-          FULL_PROMPT="${{ steps.sysprompt.outputs.system_prompt }}
+          FULL_PROMPT="$SYSTEM_PROMPT
 
           ---
 
           TASK:
-          ${{ inputs.prompt }}
+          $USER_PROMPT
 
           ---
 
