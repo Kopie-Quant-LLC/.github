@@ -9,8 +9,13 @@ jobs:
       - name: Validate branch naming
         run: |
           BR="${{ github.head_ref }}"
+          # Allow automated agent and bot prefixes unconditionally
+          if [[ "$BR" =~ ^(dependabot|builder|jules)/ ]]; then
+            echo "✓ $BR (automated prefix — allowed)"
+            exit 0
+          fi
           if [[ ! "$BR" =~ ^(feat|fix|chore|docs|refactor|test|ci|perf|build|revert)/.+ ]]; then
-            echo "::error::Branch '$BR' must match <type>/<slug> (feat/fix/chore/docs/refactor/test/ci/perf/build/revert)"
+            echo "::error::Branch '$BR' must match <type>/<slug> or an automated prefix (dependabot/builder/jules)"
             exit 1
           fi
           echo "✓ $BR"
