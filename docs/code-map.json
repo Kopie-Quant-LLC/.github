@@ -1,289 +1,229 @@
 {
   "repo": ".github",
-  "generatedAt": "2026-04-29T14:49:56Z",
+  "generatedAt": "2026-05-01T07:16:28Z",
   "generatedBy": "jules-codemap-v1",
-  "entryPoints": [
-    {
-      "path": ".github/workflows/agents-md-header-sync.yml",
-      "type": "workflow",
-      "description": "Top-level workflow entrypoint: AGENTS.md Header Sync Check."
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "type": "workflow",
-      "description": "Top-level workflow entrypoint: CI \u2014 PR Gate."
-    },
-    {
-      "path": ".github/workflows/jules-approve-plan.yml",
-      "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Approve Plan."
-    },
-    {
-      "path": ".github/workflows/jules-codemap-aggregate.yml",
-      "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Aggregate Code-Maps."
-    },
-    {
-      "path": ".github/workflows/jules-codemap.yml",
-      "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Code-Map Sessions."
-    },
-    {
-      "path": ".github/workflows/jules-orchestrator.yml",
-      "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Create Session."
-    }
-  ],
+  "entryPoints": [],
   "publicInterfaces": [
     {
-      "path": ".github/workflows/reusable-branch-name-check.yml",
+      "path": ".github/workflows/reusable-rust-ci.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Branch Name Check."
-    },
-    {
-      "path": ".github/workflows/reusable-commit-trailer.yml",
-      "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Commit Trailer Enforcement."
-    },
-    {
-      "path": ".github/workflows/reusable-docker-build-scan.yml",
-      "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Docker Build + Trivy Scan."
-    },
-    {
-      "path": ".github/workflows/reusable-ecs-deploy.yml",
-      "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 ECS Deploy (render-task-def + parked-aware)."
-    },
-    {
-      "path": ".github/workflows/reusable-node-ci.yml",
-      "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable Node CI."
+      "description": "Rust fmt + clippy + test"
     },
     {
       "path": ".github/workflows/reusable-python-ci.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Python CI."
+      "description": "Python lint + test"
     },
     {
-      "path": ".github/workflows/reusable-rust-ci.yml",
+      "path": ".github/workflows/reusable-node-ci.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable Rust CI."
-    },
-    {
-      "path": ".github/workflows/reusable-security.yml",
-      "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Security Scans."
-    },
-    {
-      "path": ".github/workflows/reusable-static-cloudfront.yml",
-      "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Static Site to S3 + CloudFront."
+      "description": "Node.js lint + test + build"
     },
     {
       "path": ".github/workflows/reusable-terraform-apply.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Terraform Apply (from plan artifact)."
+      "description": "Terraform apply with approval gate"
     },
     {
       "path": ".github/workflows/reusable-terraform-plan.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable Terraform Plan."
+      "description": "Terraform plan with PR comment"
+    },
+    {
+      "path": ".github/workflows/reusable-security.yml",
+      "type": "reusable-workflow",
+      "description": "Trivy + tfsec + secret scanning"
+    },
+    {
+      "path": ".github/workflows/reusable-docker-build-scan.yml",
+      "type": "reusable-workflow",
+      "description": "Build + Trivy scan Docker images"
+    },
+    {
+      "path": ".github/workflows/reusable-branch-name-check.yml",
+      "type": "reusable-workflow",
+      "description": "Validate branch naming convention"
+    },
+    {
+      "path": ".github/workflows/reusable-ecs-deploy.yml",
+      "type": "reusable-workflow",
+      "description": "ECS Fargate blue/green deploy"
+    },
+    {
+      "path": ".github/workflows/reusable-static-cloudfront.yml",
+      "type": "reusable-workflow",
+      "description": "S3 sync + CloudFront invalidation"
+    },
+    {
+      "path": ".github/workflows/reusable-commit-trailer.yml",
+      "type": "reusable-workflow",
+      "description": "Validate commit sign-off trailers"
     }
   ],
   "dependencies": {
     "internal": [
       {
         "repo": "kq-knowledge",
-        "interface": "AGENTS-CANONICAL-HEADER.md",
-        "description": "Canonical header source checked by drift workflow."
-      },
-      {
-        "repo": "kq-terminal",
-        "interface": "reusable-workflow-caller",
-        "description": "Downstream repo that consumes reusable workflows."
-      },
-      {
-        "repo": "kq-admin",
-        "interface": "reusable-workflow-caller",
-        "description": "Downstream repo that consumes reusable workflows."
+        "interface": "Checkout via actions/checkout",
+        "description": "Pulled in agents-md-header-sync.yml to sync canonical headers"
       }
     ],
     "external": [
       {
         "name": "actions/checkout",
-        "version": "v6",
-        "purpose": "Action dependency checkout."
-      },
-      {
-        "name": "actions/github-script",
-        "version": "v9",
-        "purpose": "Action dependency github-script."
-      },
-      {
-        "name": "aws-actions/configure-aws-credentials",
-        "version": "v6",
-        "purpose": "Action dependency configure-aws-credentials."
-      },
-      {
-        "name": "aws-actions/amazon-ecr-login",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecr-login."
-      },
-      {
-        "name": "aquasecurity/trivy-action",
-        "version": "master",
-        "purpose": "Action dependency trivy-action."
-      },
-      {
-        "name": "github/codeql-action/upload-sarif",
         "version": "v4",
-        "purpose": "Action dependency upload-sarif."
-      },
-      {
-        "name": "aws-actions/amazon-ecs-render-task-definition",
-        "version": "v1",
-        "purpose": "Action dependency amazon-ecs-render-task-definition."
-      },
-      {
-        "name": "aws-actions/amazon-ecs-deploy-task-definition",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecs-deploy-task-definition."
+        "purpose": "Checkout repo code in workflows"
       },
       {
         "name": "actions/setup-node",
-        "version": "v6",
-        "purpose": "Action dependency setup-node."
+        "version": "v4",
+        "purpose": "Setup Node environment"
       },
       {
         "name": "actions/setup-python",
-        "version": "v6",
-        "purpose": "Action dependency setup-python."
+        "version": "v4",
+        "purpose": "Setup Python environment"
+      },
+      {
+        "name": "dtolnay/rust-toolchain",
+        "version": "stable",
+        "purpose": "Setup Rust toolchain"
+      },
+      {
+        "name": "aquasecurity/trivy-action",
+        "version": "unverified",
+        "purpose": "Security scanning in CI"
       }
     ]
   },
   "workflows": [
     {
-      "file": ".github/workflows/agents-md-header-sync.yml",
+      "file": ".github/workflows/reusable-rust-ci.yml",
       "triggers": [
-        "workflow_dispatch",
-        "schedule"
+        "workflow_call"
       ],
-      "purpose": "Executes AGENTS.md Header Sync Check workflow."
-    },
-    {
-      "file": ".github/workflows/ci.yml",
-      "triggers": [
-        "pull_request"
-      ],
-      "purpose": "Executes CI \u2014 PR Gate workflow."
-    },
-    {
-      "file": ".github/workflows/jules-approve-plan.yml",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "purpose": "Executes Jules \u2014 Approve Plan workflow."
-    },
-    {
-      "file": ".github/workflows/jules-codemap-aggregate.yml",
-      "triggers": [
-        "schedule",
-        "workflow_dispatch"
-      ],
-      "purpose": "Executes Jules \u2014 Aggregate Code-Maps workflow."
-    },
-    {
-      "file": ".github/workflows/jules-codemap.yml",
-      "triggers": [
-        "schedule",
-        "workflow_dispatch"
-      ],
-      "purpose": "Executes Jules \u2014 Code-Map Sessions workflow."
+      "purpose": "Rust fmt + clippy + test"
     },
     {
       "file": ".github/workflows/jules-orchestrator.yml",
       "triggers": [
         "workflow_dispatch"
       ],
-      "purpose": "Executes Jules \u2014 Create Session workflow."
-    },
-    {
-      "file": ".github/workflows/reusable-branch-name-check.yml",
-      "triggers": [
-        "workflow_call"
-      ],
-      "purpose": "Executes Reusable \u2014 Branch Name Check workflow."
-    },
-    {
-      "file": ".github/workflows/reusable-commit-trailer.yml",
-      "triggers": [
-        "workflow_call"
-      ],
-      "purpose": "Executes Reusable \u2014 Commit Trailer Enforcement workflow."
-    },
-    {
-      "file": ".github/workflows/reusable-docker-build-scan.yml",
-      "triggers": [
-        "workflow_call"
-      ],
-      "purpose": "Executes Reusable \u2014 Docker Build + Trivy Scan workflow."
-    },
-    {
-      "file": ".github/workflows/reusable-ecs-deploy.yml",
-      "triggers": [
-        "workflow_call"
-      ],
-      "purpose": "Executes Reusable \u2014 ECS Deploy (render-task-def + parked-aware) workflow."
-    },
-    {
-      "file": ".github/workflows/reusable-node-ci.yml",
-      "triggers": [
-        "workflow_call"
-      ],
-      "purpose": "Executes Reusable Node CI workflow."
+      "purpose": "Orchestrate Jules sessions"
     },
     {
       "file": ".github/workflows/reusable-python-ci.yml",
       "triggers": [
         "workflow_call"
       ],
-      "purpose": "Executes Reusable \u2014 Python CI workflow."
+      "purpose": "Python lint + test"
     },
     {
-      "file": ".github/workflows/reusable-rust-ci.yml",
+      "file": ".github/workflows/reusable-node-ci.yml",
       "triggers": [
         "workflow_call"
       ],
-      "purpose": "Executes Reusable Rust CI workflow."
-    },
-    {
-      "file": ".github/workflows/reusable-security.yml",
-      "triggers": [
-        "workflow_call"
-      ],
-      "purpose": "Executes Reusable \u2014 Security Scans workflow."
-    },
-    {
-      "file": ".github/workflows/reusable-static-cloudfront.yml",
-      "triggers": [
-        "workflow_call"
-      ],
-      "purpose": "Executes Reusable \u2014 Static Site to S3 + CloudFront workflow."
+      "purpose": "Node.js lint + test + build"
     },
     {
       "file": ".github/workflows/reusable-terraform-apply.yml",
       "triggers": [
         "workflow_call"
       ],
-      "purpose": "Executes Reusable \u2014 Terraform Apply (from plan artifact) workflow."
+      "purpose": "Terraform apply with approval gate"
+    },
+    {
+      "file": ".github/workflows/jules-codemap.yml",
+      "triggers": [
+        "schedule"
+      ],
+      "purpose": "Generate code map for a repo"
     },
     {
       "file": ".github/workflows/reusable-terraform-plan.yml",
       "triggers": [
         "workflow_call"
       ],
-      "purpose": "Executes Reusable Terraform Plan workflow."
+      "purpose": "Terraform plan with PR comment"
+    },
+    {
+      "file": ".github/workflows/jules-depsweep.yml",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "purpose": "Dependency sweep across repos"
+    },
+    {
+      "file": ".github/workflows/reusable-security.yml",
+      "triggers": [
+        "workflow_call"
+      ],
+      "purpose": "Trivy + tfsec + secret scanning"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "triggers": [
+        "push",
+        "pull_request"
+      ],
+      "purpose": "CI checks for .github repo itself"
+    },
+    {
+      "file": ".github/workflows/agents-md-header-sync.yml",
+      "triggers": [
+        "workflow_dispatch",
+        "schedule"
+      ],
+      "purpose": "AGENTS.md canonical header drift detection"
+    },
+    {
+      "file": ".github/workflows/jules-approve-plan.yml",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "purpose": "Approves a Jules plan"
+    },
+    {
+      "file": ".github/workflows/reusable-docker-build-scan.yml",
+      "triggers": [
+        "workflow_call"
+      ],
+      "purpose": "Build + Trivy scan Docker images"
+    },
+    {
+      "file": ".github/workflows/reusable-branch-name-check.yml",
+      "triggers": [
+        "workflow_call"
+      ],
+      "purpose": "Validate branch naming convention"
+    },
+    {
+      "file": ".github/workflows/jules-codemap-aggregate.yml",
+      "triggers": [
+        "schedule"
+      ],
+      "purpose": "Aggregate code maps from repos"
+    },
+    {
+      "file": ".github/workflows/reusable-ecs-deploy.yml",
+      "triggers": [
+        "workflow_call"
+      ],
+      "purpose": "ECS Fargate blue/green deploy"
+    },
+    {
+      "file": ".github/workflows/reusable-static-cloudfront.yml",
+      "triggers": [
+        "workflow_call"
+      ],
+      "purpose": "S3 sync + CloudFront invalidation"
+    },
+    {
+      "file": ".github/workflows/reusable-commit-trailer.yml",
+      "triggers": [
+        "workflow_call"
+      ],
+      "purpose": "Validate commit sign-off trailers"
     }
   ],
   "agentFootprint": {
