@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - kq-knowledge-graph
+          - kq-website
           # Phase 3 expands this list
       prompt:
         description: 'Task prompt for Jules'
