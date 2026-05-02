@@ -26,6 +26,10 @@ jobs:
                    FAIL=1 ;;
               esac
             fi
+            if ! grep -qE '^Engineered-By: ' <<<"$MSG"; then
+              echo "::error::commit $sha missing Engineered-By"
+              FAIL=1
+            fi
             if grep -qiE '^(Co-authored-by: .*(claude|gpt|copilot|cursor|perplexity|computer|assistant|anthropic|openai))' <<<"$MSG"; then
               echo "::error::commit $sha has AI co-author trailer — not allowed"
               FAIL=1
