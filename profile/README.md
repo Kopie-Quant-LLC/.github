@@ -4,7 +4,7 @@
 
 <h1 align="center">Kopie Quant</h1>
 <p align="center">
-  Clean, configurable quant data for everyone — from first backtest to full-stack research.
+  The Operating System for Quantitative Finance.
 </p>
 
 <p align="center">
@@ -13,23 +13,21 @@
 
 ---
 
-# 🔷 Kopie Quant in One Line
+# Kopie Quant in One Line
 
-Kopie Quant is the quant data utility for people who would rather ship ideas than babysit data pipelines.
-We exist to take you from "where do I get clean data?" to "here's my strategy" in a single hop.
+Kopie Quant is the infrastructure layer that eliminates middle-office engineering. We automate the grueling work of data cleaning and pipeline management so you can focus entirely on discovering Alpha.
 
 ---
 
 <p align="center">
-  <img src="kq_what _were_about.png" width="600" alt="What We're About banner" />
+  <img src="kq_what _were_about.png" width="600" alt="What We Solve banner" />
 </p>
 
-# ✳️ What We're About
+# What We Solve
 
-- **Democratizing quant tools** – institutional-grade historical market data without the institutional gatekeeping.
-- **Killing data janitor work** – no more hunting for missing candles, fixing splits, or stitching together messy exports.
-- **Supercharging experimentation** – get the exact dataset you have in your head so you can test, iterate, and publish faster.
-- **Serving the whole stack** – students, indie quants, small funds, data scientists, and educators all get the same quality building blocks.
+- **Killing the "Data Janitor"** – Quantitative researchers currently spend 80% of their time hunting for missing candles, manually adjusting stock splits, and stitching together messy exports. We automate all of it. Our pipelines give you mathematically perfect data out of the box, so you can get straight to the math.
+- **Unblocking Iteration Speed** – Testing a multi-year strategy across thousands of assets used to take hours in Python. By handling the heavy execution physics under the hood, we allow you to run complex backtests instantly. You can test, fail, and iterate at the speed of thought.
+- **Making AI Actionable** – Everyone wants to use AI for trading, but frontier models hallucinate when fed raw, unstructured CSV files. We provide the deterministic rails. Kopie Quant acts as the operating environment where AI agents can safely pull data, write code, and validate strategies autonomously.
 
 ---
 
@@ -37,57 +35,9 @@ We exist to take you from "where do I get clean data?" to "here's my strategy" i
   <img src="kq_mission.png" width="600" alt="Our Mission banner" />
 </p>
 
-# 🧱 Our Mission
+# Our Mission
 
-**Give every quant the same quality of data that top funds use — at a price and UX that feels modern, not legacy.**
-
-Kopie Quant is the layer between raw market history and whatever you're building on top of it:
-- Trading systems and algos
-- Research backtests and dashboards
-- ML models and feature pipelines
-- Course material and academic work
-
-We focus on reliability, transparency, and reproducibility so you can focus on ideas, not infrastructure.
-
----
-
-<p align="center">
-  <img src="kq_longterm_vision.png" width="600" alt="Long-Term Vision banner" />
-</p>
-
-# 🪜 Long-Term Vision
-
-Today, KQ is your "build-any-dataset" sidekick.
-Tomorrow, it grows into a full **quant ecosystem** that keeps the same simple promise: clean data in, better research out.
-
-Planned directions include:
-- Deep backtesting and simulation tools
-- ML-ready research workflows
-- Strategy and research copilots
-- Smooth paths from research to live execution
-
-All of it stays grounded in the same core idea: if the data layer is rock solid, everything above it becomes faster, safer, and more creative.
-
----
-
-<p align="center">
-  <img src="kq_logo_variations.png" width="600" alt="Branding & Visuals banner" />
-</p>
-
-# 🧩 Branding & Visuals
-
-Our visual system is intentionally minimal:
-- High-contrast hexagon mark built around the **KQ** monogram
-- Black-and-white first, so it looks sharp in both dark and light themes
-- Flexible enough to work as:
-  - GitHub org avatar
-  - README hero image
-  - App icon or favicon
-
-To reuse the logo in your own docs inside this org, you can reference:
-```html
-<img src="KopieQuant_logo_1_transparent.png" width="140" alt="Kopie Quant logo" />
-```
+To provide the fundamental infrastructure that powers the market, allowing the next generation of Quants to focus 100% of their time on shipping trading strategies—rather than babysitting data pipelines or attempting to build the massive, complex architecture required to safely sandbox autonomous AI agents for quantitative research.
 
 ---
 
@@ -95,12 +45,11 @@ To reuse the logo in your own docs inside this org, you can reference:
   <img src="kq_stay_tuned.png" width="600" alt="Stay Tuned banner" />
 </p>
 
-# 📢 Stay Tuned
+# Stay Tuned
 
-We're building Kopie Quant in public. This page is our central hub — check back here for:
-- **Platform updates** and release announcements
-- Specs, design docs, and product notes
+We're building the core infrastructure of the quantitative market. Check back here for:
+- Platform updates and release announcements
+- Architecture notes and product specs
 - Roadmap discussions and experiments
-- Community feedback loops as we ship
 
-If you care about better quant infrastructure, keep an eye on this org — or better yet, build with us.
+If you care about better quant infrastructure, keep an eye on this org.
