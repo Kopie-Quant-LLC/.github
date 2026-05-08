@@ -1,6 +1,6 @@
 {
   "repo": ".github",
-  "generatedAt": "2026-04-29T14:49:56Z",
+  "generatedAt": "2026-05-08T07:02:52Z",
   "generatedBy": "jules-codemap-v1",
   "entryPoints": [
     {
@@ -27,6 +27,11 @@
       "path": ".github/workflows/jules-codemap.yml",
       "type": "workflow",
       "description": "Top-level workflow entrypoint: Jules \u2014 Code-Map Sessions."
+    },
+    {
+      "path": ".github/workflows/jules-depsweep.yml",
+      "type": "workflow",
+      "description": "Top-level workflow entrypoint: Jules \u2014 Dependency Sweep."
     },
     {
       "path": ".github/workflows/jules-orchestrator.yml",
@@ -116,24 +121,9 @@
         "purpose": "Action dependency checkout."
       },
       {
-        "name": "actions/github-script",
-        "version": "v9",
-        "purpose": "Action dependency github-script."
-      },
-      {
         "name": "aws-actions/configure-aws-credentials",
         "version": "v6",
         "purpose": "Action dependency configure-aws-credentials."
-      },
-      {
-        "name": "aws-actions/amazon-ecr-login",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecr-login."
-      },
-      {
-        "name": "aquasecurity/trivy-action",
-        "version": "master",
-        "purpose": "Action dependency trivy-action."
       },
       {
         "name": "github/codeql-action/upload-sarif",
@@ -141,24 +131,39 @@
         "purpose": "Action dependency upload-sarif."
       },
       {
-        "name": "aws-actions/amazon-ecs-render-task-definition",
-        "version": "v1",
-        "purpose": "Action dependency amazon-ecs-render-task-definition."
-      },
-      {
-        "name": "aws-actions/amazon-ecs-deploy-task-definition",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecs-deploy-task-definition."
-      },
-      {
         "name": "actions/setup-node",
         "version": "v6",
         "purpose": "Action dependency setup-node."
       },
       {
+        "name": "aquasecurity/trivy-action",
+        "version": "master",
+        "purpose": "Action dependency trivy-action."
+      },
+      {
         "name": "actions/setup-python",
         "version": "v6",
         "purpose": "Action dependency setup-python."
+      },
+      {
+        "name": "dtolnay/rust-toolchain",
+        "version": "stable",
+        "purpose": "Action dependency rust-toolchain."
+      },
+      {
+        "name": "hashicorp/setup-terraform",
+        "version": "v3",
+        "purpose": "Action dependency setup-terraform."
+      },
+      {
+        "name": "actions/github-script",
+        "version": "v9",
+        "purpose": "Action dependency github-script."
+      },
+      {
+        "name": "aws-actions/amazon-ecr-login",
+        "version": "v2",
+        "purpose": "Action dependency amazon-ecr-login."
       }
     ]
   },
@@ -200,6 +205,13 @@
         "workflow_dispatch"
       ],
       "purpose": "Executes Jules \u2014 Code-Map Sessions workflow."
+    },
+    {
+      "file": ".github/workflows/jules-depsweep.yml",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "purpose": "Executes Jules \u2014 Dependency Sweep workflow."
     },
     {
       "file": ".github/workflows/jules-orchestrator.yml",
