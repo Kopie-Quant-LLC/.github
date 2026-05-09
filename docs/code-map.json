@@ -1,6 +1,6 @@
 {
   "repo": ".github",
-  "generatedAt": "2026-04-29T14:49:56Z",
+  "generatedAt": "2026-05-09T20:16:09Z",
   "generatedBy": "jules-codemap-v1",
   "entryPoints": [
     {
@@ -27,6 +27,11 @@
       "path": ".github/workflows/jules-codemap.yml",
       "type": "workflow",
       "description": "Top-level workflow entrypoint: Jules \u2014 Code-Map Sessions."
+    },
+    {
+      "path": ".github/workflows/jules-depsweep.yml",
+      "type": "workflow",
+      "description": "Top-level workflow entrypoint: Jules \u2014 Dependency Sweep."
     },
     {
       "path": ".github/workflows/jules-orchestrator.yml",
@@ -200,6 +205,14 @@
         "workflow_dispatch"
       ],
       "purpose": "Executes Jules \u2014 Code-Map Sessions workflow."
+    },
+    {
+      "file": ".github/workflows/jules-depsweep.yml",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "purpose": "Executes Jules \u2014 Dependency Sweep workflow."
     },
     {
       "file": ".github/workflows/jules-orchestrator.yml",
