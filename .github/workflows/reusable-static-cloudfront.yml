@@ -1,5 +1,6 @@
 name: Reusable — Static Site to S3 + CloudFront
 # Wave 3 W3-B0: extracts common static-deploy pattern used by kq-website
+# v1.2.1: Added cache-dependency-path input for monorepo/subdirectory layouts
 # © Kopie Quant LLC
 
 on:
@@ -29,6 +30,10 @@ on:
       install-command:
         type: string
         default: "npm ci"
+      cache-dependency-path:
+        description: "Path to package-lock.json (for monorepo/subdirectory layouts)"
+        type: string
+        default: "package-lock.json"
 
 permissions:
   contents: read
@@ -45,7 +50,7 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
 
       - name: Install dependencies
         run: ${{ inputs.install-command }}
