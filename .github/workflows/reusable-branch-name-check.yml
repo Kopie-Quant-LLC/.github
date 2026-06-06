@@ -14,7 +14,7 @@ jobs:
             echo "✓ $BR (automated prefix — allowed)"
             exit 0
           fi
-          if [[ ! "$BR" =~ ^(feat|fix|chore|docs|refactor|test|ci|perf|build|revert)/.+ ]]; then
+          if [[ ! "$BR" =~ ^(feat|fix|chore|docs|refactor|test|ci|perf|build|revert|epic|epic-[0-9]+)/.+ ]]; then
             echo "::error::Branch '$BR' must match <type>/<slug> or an automated prefix (dependabot/builder/jules)"
             exit 1
           fi
