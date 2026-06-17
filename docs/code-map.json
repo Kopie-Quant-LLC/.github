@@ -1,6 +1,6 @@
 {
   "repo": ".github",
-  "generatedAt": "2026-04-29T14:49:56Z",
+  "generatedAt": "2026-06-17T08:14:55Z",
   "generatedBy": "jules-codemap-v1",
   "entryPoints": [
     {
@@ -27,6 +27,11 @@
       "path": ".github/workflows/jules-codemap.yml",
       "type": "workflow",
       "description": "Top-level workflow entrypoint: Jules \u2014 Code-Map Sessions."
+    },
+    {
+      "path": ".github/workflows/jules-depsweep.yml",
+      "type": "workflow",
+      "description": "Top-level workflow entrypoint: Jules \u2014 Dependency Sweep."
     },
     {
       "path": ".github/workflows/jules-orchestrator.yml",
@@ -97,16 +102,6 @@
         "repo": "kq-knowledge",
         "interface": "AGENTS-CANONICAL-HEADER.md",
         "description": "Canonical header source checked by drift workflow."
-      },
-      {
-        "repo": "kq-terminal",
-        "interface": "reusable-workflow-caller",
-        "description": "Downstream repo that consumes reusable workflows."
-      },
-      {
-        "repo": "kq-admin",
-        "interface": "reusable-workflow-caller",
-        "description": "Downstream repo that consumes reusable workflows."
       }
     ],
     "external": [
@@ -116,39 +111,19 @@
         "purpose": "Action dependency checkout."
       },
       {
-        "name": "actions/github-script",
-        "version": "v9",
-        "purpose": "Action dependency github-script."
+        "name": "dtolnay/rust-toolchain",
+        "version": "stable",
+        "purpose": "Action dependency rust-toolchain."
       },
       {
-        "name": "aws-actions/configure-aws-credentials",
+        "name": "actions/cache",
+        "version": "v5",
+        "purpose": "Action dependency cache."
+      },
+      {
+        "name": "actions/setup-python",
         "version": "v6",
-        "purpose": "Action dependency configure-aws-credentials."
-      },
-      {
-        "name": "aws-actions/amazon-ecr-login",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecr-login."
-      },
-      {
-        "name": "aquasecurity/trivy-action",
-        "version": "master",
-        "purpose": "Action dependency trivy-action."
-      },
-      {
-        "name": "github/codeql-action/upload-sarif",
-        "version": "v4",
-        "purpose": "Action dependency upload-sarif."
-      },
-      {
-        "name": "aws-actions/amazon-ecs-render-task-definition",
-        "version": "v1",
-        "purpose": "Action dependency amazon-ecs-render-task-definition."
-      },
-      {
-        "name": "aws-actions/amazon-ecs-deploy-task-definition",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecs-deploy-task-definition."
+        "purpose": "Action dependency setup-python."
       },
       {
         "name": "actions/setup-node",
@@ -156,9 +131,29 @@
         "purpose": "Action dependency setup-node."
       },
       {
-        "name": "actions/setup-python",
+        "name": "hashicorp/setup-terraform",
+        "version": "v3",
+        "purpose": "Action dependency setup-terraform."
+      },
+      {
+        "name": "aws-actions/configure-aws-credentials",
         "version": "v6",
-        "purpose": "Action dependency setup-python."
+        "purpose": "Action dependency configure-aws-credentials."
+      },
+      {
+        "name": "actions/download-artifact",
+        "version": "v8",
+        "purpose": "Action dependency download-artifact."
+      },
+      {
+        "name": "terraform-linters/setup-tflint",
+        "version": "v6",
+        "purpose": "Action dependency setup-tflint."
+      },
+      {
+        "name": "aquasecurity/tfsec-sarif-action",
+        "version": "v0.1.4",
+        "purpose": "Action dependency tfsec-sarif-action."
       }
     ]
   },
@@ -200,6 +195,13 @@
         "workflow_dispatch"
       ],
       "purpose": "Executes Jules \u2014 Code-Map Sessions workflow."
+    },
+    {
+      "file": ".github/workflows/jules-depsweep.yml",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "purpose": "Executes Jules \u2014 Dependency Sweep workflow."
     },
     {
       "file": ".github/workflows/jules-orchestrator.yml",
