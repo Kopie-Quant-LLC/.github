@@ -7,8 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate branch naming
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          BR="${{ github.head_ref }}"
+          BR="${HEAD_REF}"
           # Allow automated agent and bot prefixes unconditionally
           if [[ "$BR" =~ ^(dependabot|builder|jules)/ ]]; then
             echo "✓ $BR (automated prefix — allowed)"
