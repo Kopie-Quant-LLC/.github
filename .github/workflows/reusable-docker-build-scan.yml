@@ -38,7 +38,7 @@ jobs:
     outputs:
       image-uri: ${{ steps.final.outputs.uri }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Configure AWS (for ECR push)
         if: inputs.push
         uses: aws-actions/configure-aws-credentials@v6

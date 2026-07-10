@@ -27,7 +27,7 @@ jobs:
           - .github
     steps:
       - name: Checkout canonical source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: Kopie-Quant-LLC/kq-knowledge
           token: ${{ secrets.KQ_SYNC_PAT }}
@@ -35,7 +35,7 @@ jobs:
           path: canonical
 
       - name: Checkout target repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: Kopie-Quant-LLC/${{ matrix.repo }}
           token: ${{ secrets.KQ_SYNC_PAT }}
