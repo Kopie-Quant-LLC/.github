@@ -1,37 +1,37 @@
 {
   "repo": ".github",
-  "generatedAt": "2026-04-29T14:49:56Z",
+  "generatedAt": "2026-07-20T09:35:02Z",
   "generatedBy": "jules-codemap-v1",
   "entryPoints": [
     {
       "path": ".github/workflows/agents-md-header-sync.yml",
       "type": "workflow",
-      "description": "Top-level workflow entrypoint: AGENTS.md Header Sync Check."
+      "description": "Top-level orchestration workflow: AGENTS.md Header Sync Check."
     },
     {
       "path": ".github/workflows/ci.yml",
       "type": "workflow",
-      "description": "Top-level workflow entrypoint: CI \u2014 PR Gate."
+      "description": "Top-level orchestration workflow: CI \u2014 PR Gate."
     },
     {
       "path": ".github/workflows/jules-approve-plan.yml",
       "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Approve Plan."
-    },
-    {
-      "path": ".github/workflows/jules-codemap-aggregate.yml",
-      "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Aggregate Code-Maps."
+      "description": "Top-level orchestration workflow: Jules \u2014 Approve Plan."
     },
     {
       "path": ".github/workflows/jules-codemap.yml",
       "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Code-Map Sessions."
+      "description": "Top-level orchestration workflow: Jules \u2014 Code-Map Sessions."
+    },
+    {
+      "path": ".github/workflows/jules-depsweep.yml",
+      "type": "workflow",
+      "description": "Top-level orchestration workflow: Jules \u2014 Dependency Sweep."
     },
     {
       "path": ".github/workflows/jules-orchestrator.yml",
       "type": "workflow",
-      "description": "Top-level workflow entrypoint: Jules \u2014 Create Session."
+      "description": "Top-level orchestration workflow: Jules \u2014 Create Session."
     }
   ],
   "publicInterfaces": [
@@ -48,47 +48,47 @@
     {
       "path": ".github/workflows/reusable-docker-build-scan.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Docker Build + Trivy Scan."
+      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Docker Build + Trivy Scan. Inputs: context, dockerfile, image-tag, push, ecr-repo, aws-role-arn, aws-region. Outputs: image-uri."
     },
     {
       "path": ".github/workflows/reusable-ecs-deploy.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 ECS Deploy (render-task-def + parked-aware)."
+      "description": "Reusable GitHub Actions workflow: Reusable \u2014 ECS Deploy (render-task-def + parked-aware). Inputs: aws-role-arn, aws-region, cluster, service, task-family, container-name, image, health-url-ssm-param."
     },
     {
       "path": ".github/workflows/reusable-node-ci.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable Node CI."
+      "description": "Reusable GitHub Actions workflow: Reusable Node CI. Inputs: node-version, build-command."
     },
     {
       "path": ".github/workflows/reusable-python-ci.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Python CI."
+      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Python CI. Inputs: working-directory, python-version, requirements-file, pythonpath, run-tests."
     },
     {
       "path": ".github/workflows/reusable-rust-ci.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable Rust CI."
+      "description": "Reusable GitHub Actions workflow: Reusable Rust CI. Inputs: rust-version."
     },
     {
       "path": ".github/workflows/reusable-security.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Security Scans."
+      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Security Scans. Inputs: language, working-directory, docker-context, dockerfile."
     },
     {
       "path": ".github/workflows/reusable-static-cloudfront.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Static Site to S3 + CloudFront."
+      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Static Site to S3 + CloudFront. Inputs: aws-role-arn, aws-region, s3-bucket, cloudfront-distribution-ssm-param, node-version, build-command, build-output-dir, install-command, cache-dependency-path."
     },
     {
       "path": ".github/workflows/reusable-terraform-apply.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Terraform Apply (from plan artifact)."
+      "description": "Reusable GitHub Actions workflow: Reusable \u2014 Terraform Apply (from plan artifact). Inputs: working-directory, aws-role-arn, aws-region, plan-artifact, terraform-version."
     },
     {
       "path": ".github/workflows/reusable-terraform-plan.yml",
       "type": "reusable-workflow",
-      "description": "Reusable GitHub Actions workflow: Reusable Terraform Plan."
+      "description": "Reusable GitHub Actions workflow: Reusable Terraform Plan. Inputs: working-directory, terraform-version."
     }
   ],
   "dependencies": {
@@ -97,68 +97,58 @@
         "repo": "kq-knowledge",
         "interface": "AGENTS-CANONICAL-HEADER.md",
         "description": "Canonical header source checked by drift workflow."
-      },
-      {
-        "repo": "kq-terminal",
-        "interface": "reusable-workflow-caller",
-        "description": "Downstream repo that consumes reusable workflows."
-      },
-      {
-        "repo": "kq-admin",
-        "interface": "reusable-workflow-caller",
-        "description": "Downstream repo that consumes reusable workflows."
       }
     ],
     "external": [
       {
+        "name": "actions/cache",
+        "version": "v5",
+        "purpose": "GitHub Action dependency."
+      },
+      {
         "name": "actions/checkout",
         "version": "v6",
-        "purpose": "Action dependency checkout."
+        "purpose": "Checkout repository content"
+      },
+      {
+        "name": "actions/download-artifact",
+        "version": "v8",
+        "purpose": "GitHub Action dependency."
       },
       {
         "name": "actions/github-script",
         "version": "v9",
-        "purpose": "Action dependency github-script."
-      },
-      {
-        "name": "aws-actions/configure-aws-credentials",
-        "version": "v6",
-        "purpose": "Action dependency configure-aws-credentials."
-      },
-      {
-        "name": "aws-actions/amazon-ecr-login",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecr-login."
-      },
-      {
-        "name": "aquasecurity/trivy-action",
-        "version": "master",
-        "purpose": "Action dependency trivy-action."
-      },
-      {
-        "name": "github/codeql-action/upload-sarif",
-        "version": "v4",
-        "purpose": "Action dependency upload-sarif."
-      },
-      {
-        "name": "aws-actions/amazon-ecs-render-task-definition",
-        "version": "v1",
-        "purpose": "Action dependency amazon-ecs-render-task-definition."
-      },
-      {
-        "name": "aws-actions/amazon-ecs-deploy-task-definition",
-        "version": "v2",
-        "purpose": "Action dependency amazon-ecs-deploy-task-definition."
+        "purpose": "Execute JavaScript inline"
       },
       {
         "name": "actions/setup-node",
         "version": "v6",
-        "purpose": "Action dependency setup-node."
+        "purpose": "Setup Node.js environment"
       },
       {
         "name": "actions/setup-python",
         "version": "v6",
-        "purpose": "Action dependency setup-python."
+        "purpose": "Setup Python environment"
+      },
+      {
+        "name": "aquasecurity/tfsec-sarif-action",
+        "version": "v0.1.4",
+        "purpose": "GitHub Action dependency."
+      },
+      {
+        "name": "aquasecurity/trivy-action",
+        "version": "master",
+        "purpose": "Run Trivy vulnerability scanner"
+      },
+      {
+        "name": "aws-actions/amazon-ecr-login",
+        "version": "v2",
+        "purpose": "Login to Amazon ECR"
+      },
+      {
+        "name": "aws-actions/amazon-ecs-deploy-task-definition",
+        "version": "v2",
+        "purpose": "Deploy Amazon ECS task definition"
       }
     ]
   },
@@ -186,20 +176,19 @@
       "purpose": "Executes Jules \u2014 Approve Plan workflow."
     },
     {
-      "file": ".github/workflows/jules-codemap-aggregate.yml",
-      "triggers": [
-        "schedule",
-        "workflow_dispatch"
-      ],
-      "purpose": "Executes Jules \u2014 Aggregate Code-Maps workflow."
-    },
-    {
       "file": ".github/workflows/jules-codemap.yml",
       "triggers": [
         "schedule",
         "workflow_dispatch"
       ],
       "purpose": "Executes Jules \u2014 Code-Map Sessions workflow."
+    },
+    {
+      "file": ".github/workflows/jules-depsweep.yml",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "purpose": "Executes Jules \u2014 Dependency Sweep workflow."
     },
     {
       "file": ".github/workflows/jules-orchestrator.yml",
