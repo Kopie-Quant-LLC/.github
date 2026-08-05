@@ -2,6 +2,22 @@ name: Reusable — Commit Trailer Enforcement
 on:
   workflow_call:
 
+# EVENT-AWARE (2026-08-05). This check was written for `pull_request` only: it read
+# `github.event.pull_request.base.sha`/`.head.sha` directly. When a consuming repo added a `push`
+# trigger, both rendered EMPTY on push, `git rev-list ".."` errored inside a process substitution,
+# the read loop saw zero commits, and the job exited 0 — PASSING WITHOUT CHECKING ANYTHING. That
+# silent pass is worse than a failure: a gate that cannot fail is decorative.
+#
+# It now derives the commit range per event, and it fails loudly if it cannot derive one. This
+# matters because the publish loop pushes landed work continuously to a long-lived stream branch
+# (kq-board/kq-logic-board/development-principles/pr-loop/README.md) — the trailer rule has to hold
+# on the commits reaching that branch, not only on the ones that happen to arrive via a PR.
+#
+# The sibling `reusable-branch-name-check.yml` took the OPPOSITE route and stays PR-only: it reads
+# `github.head_ref` (PR-only by definition), and a `<type>/<slug>` convention is meaningful for PR
+# branches but meaningless against one long-lived stream. Consumers gate that job on
+# `github.event_name == 'pull_request'`.
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -9,9 +25,55 @@ jobs:
       - uses: actions/checkout@v6
         with: { fetch-depth: 0 }
       - name: Enforce Signed-off-by on every commit; ban AI co-authors
+        # Context values pass through `env:` rather than being interpolated into the script body —
+        # a `${{ }}` expanded inline is a template-injection surface (zizmor `template-injection`).
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_HEAD: ${{ github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          BASE=${{ github.event.pull_request.base.sha }}
-          HEAD=${{ github.event.pull_request.head.sha }}
+          set -euo pipefail
+          NULL_SHA=0000000000000000000000000000000000000000
+
+          case "$EVENT_NAME" in
+            pull_request|pull_request_target)
+              RANGE="${PR_BASE}..${PR_HEAD}"
+              ;;
+            push)
+              # `before` is the null sha on a branch's first push, and points at a discarded commit
+              # after a force-push. Either way it cannot anchor a range, so fall back to whatever
+              # this ref carries that the default branch does not.
+              if [ -z "$PUSH_BEFORE" ] || [ "$PUSH_BEFORE" = "$NULL_SHA" ] \
+                 || ! git cat-file -e "${PUSH_BEFORE}^{commit}" 2>/dev/null; then
+                if git rev-parse -q --verify "origin/${DEFAULT_BRANCH}" >/dev/null; then
+                  RANGE="origin/${DEFAULT_BRANCH}..${PUSH_HEAD}"
+                else
+                  RANGE="${PUSH_HEAD}~1..${PUSH_HEAD}"
+                fi
+              else
+                RANGE="${PUSH_BEFORE}..${PUSH_HEAD}"
+              fi
+              ;;
+            *)
+              echo "::notice::commit-trailer: event '$EVENT_NAME' carries no commit range — nothing to check"
+              exit 0
+              ;;
+          esac
+
+          echo "commit-trailer: event=$EVENT_NAME range=$RANGE"
+
+          # Captured into a variable on purpose: under `set -e` a failed rev-list now FAILS THE
+          # STEP. Reading it through a process substitution is what let the original bug pass.
+          COMMITS=$(git rev-list "$RANGE")
+
+          if [ -z "$COMMITS" ]; then
+            echo "::notice::commit-trailer: range '$RANGE' contains no commits — nothing to check"
+            exit 0
+          fi
+
           FAIL=0
           while IFS= read -r sha; do
             MSG=$(git log -1 --format=%B "$sha")
@@ -34,5 +96,5 @@ jobs:
               echo "::error::commit $sha has AI co-author trailer — not allowed"
               FAIL=1
             fi
-          done < <(git rev-list "$BASE..$HEAD")
+          done <<< "$COMMITS"
           exit $FAIL
