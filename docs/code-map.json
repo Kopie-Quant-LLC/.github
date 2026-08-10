@@ -1,6 +1,6 @@
 {
   "repo": ".github",
-  "generatedAt": "2026-08-10T07:57:16Z",
+  "generatedAt": "2026-08-10T08:04:36Z",
   "generatedBy": "jules-codemap-v1",
   "entryPoints": [
     {
@@ -95,8 +95,13 @@
     "internal": [],
     "external": [
       {
-        "name": "aws-actions/amazon-ecr-login",
-        "version": "v2",
+        "name": "actions/checkout",
+        "version": "v6",
+        "purpose": "Checkout repository content"
+      },
+      {
+        "name": "./.github/workflows/reusable-commit-trailer.yml",
+        "version": "latest",
         "purpose": "GitHub Action"
       },
       {
@@ -105,34 +110,24 @@
         "purpose": "Setup Node.js environment"
       },
       {
-        "name": "aws-actions/configure-aws-credentials",
-        "version": "v6",
+        "name": "actions/cache",
+        "version": "v5",
+        "purpose": "GitHub Action"
+      },
+      {
+        "name": "actions/github-script",
+        "version": "v9",
+        "purpose": "GitHub Action"
+      },
+      {
+        "name": "aws-actions/amazon-ecs-render-task-definition",
+        "version": "v1",
         "purpose": "GitHub Action"
       },
       {
         "name": "dtolnay/rust-toolchain",
         "version": "stable",
         "purpose": "GitHub Action"
-      },
-      {
-        "name": "actions/download-artifact",
-        "version": "v8",
-        "purpose": "GitHub Action"
-      },
-      {
-        "name": "actions/cache",
-        "version": "v5",
-        "purpose": "GitHub Action"
-      },
-      {
-        "name": "aquasecurity/trivy-action",
-        "version": "master",
-        "purpose": "GitHub Action"
-      },
-      {
-        "name": "actions/checkout",
-        "version": "v6",
-        "purpose": "Checkout repository content"
       },
       {
         "name": "terraform-linters/setup-tflint",
@@ -142,6 +137,11 @@
       {
         "name": "bridgecrewio/checkov-action",
         "version": "v12",
+        "purpose": "GitHub Action"
+      },
+      {
+        "name": "aquasecurity/trivy-action",
+        "version": "master",
         "purpose": "GitHub Action"
       }
     ]
