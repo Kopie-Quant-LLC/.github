@@ -28,7 +28,7 @@ permissions:
 jobs:
   plan:
     name: Format · Validate · Lint · Security · Plan
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ubuntu-latest   # checkov + tfsec are Docker-container actions — Linux-only, stays hosted (free minutes)
     steps:
       - uses: actions/checkout@v6
 
