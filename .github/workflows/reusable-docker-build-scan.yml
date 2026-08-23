@@ -34,7 +34,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     outputs:
       image-uri: ${{ steps.final.outputs.uri }}
     steps:

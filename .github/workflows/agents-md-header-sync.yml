@@ -12,7 +12,7 @@ permissions:
 jobs:
   sync-check:
     name: Check canonical header drift
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     strategy:
       fail-fast: false
       matrix:
