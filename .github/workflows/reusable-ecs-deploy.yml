@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     environment: production
     steps:
       - uses: actions/checkout@v6
