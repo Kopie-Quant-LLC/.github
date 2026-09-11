@@ -10,7 +10,7 @@ on:
 #
 # It now derives the commit range per event, and it fails loudly if it cannot derive one. This
 # matters because the publish loop pushes landed work continuously to a long-lived stream branch
-# (kq-board/kq-logic-board/development-loops/pr-loop/README.md) — the trailer rule has to hold
+# (kq-board/kq-logic-board/development-loops/colby/pr-loop/README.md) — the trailer rule has to hold
 # on the commits reaching that branch, not only on the ones that happen to arrive via a PR.
 #
 # The sibling `reusable-branch-name-check.yml` took the OPPOSITE route and stays PR-only: it reads
