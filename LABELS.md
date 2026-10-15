@@ -77,7 +77,7 @@ The descriptions above are the label text this catalog defines. They are not con
 | `scope: matchmaking` | No `kq_matchmaking_engine` directory exists. Stale name. |
 | `scope: shared-lib` | No `kq_shared_lib` directory exists. Stale name. |
 
-No `scope:` label exists for most repos at the kq root, including `kq-terminal`, `kq-core-backend`, `kq-l1-data-engineering`, `kq-l1-compute-orchestration`, `kq-client-management`, `kq-enterprise-portal`, `kq-farm`, `kq-farm-dispatch`, `kq-doc-services`, `kq-development-env`, `kq-product-evaluation`, `kq-board`, `kq-zeus-engine` and `sites/kq-website` (the public site, GitHub `Kopie-Quant-LLC/kq-website`). `sites/kq-admin` is covered by `scope: admin-portal` above. Adding or renaming a scope label is a change to this file, which `.github/CODEOWNERS` assigns to `@YXZYSME`. This file will then change, and the count table at the top must change with it.
+No `scope:` label exists for most repos at the kq root, including `kq-terminal`, `kq-core-backend`, `kq-l1-data-engineering`, `kq-l1-compute-orchestration`, `kq-client-management`, `kq-enterprise-portal`, `kq-farm`, `kq-farm-dispatch`, `kq-doc-services`, `kq-development-env`, `kq-board`, `kq-zeus-engine` and `sites/kq-website` (the public site, GitHub `Kopie-Quant-LLC/kq-website`). `sites/kq-admin` is covered by `scope: admin-portal` above. Adding or renaming a scope label is a change to this file, which `.github/CODEOWNERS` assigns to `@YXZYSME`. This file will then change, and the count table at the top must change with it.
 
 ---
 
