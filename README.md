@@ -80,7 +80,7 @@ actionlint .github/workflows/*.yml
 
 On 2026-10-04 (`efc7b74`), this command reported 2 findings: the `head_ref` note in `reusable-branch-name-check.yml` and an unused variable (`SC2034`) in `reusable-ecs-deploy.yml`. No CI job runs `actionlint`.
 
-No local command in this repository is link-class. The only local check is `actionlint`. The `cargo test` and `docker build` steps inside the reusable workflows run on GitHub Actions runners when a caller invokes them. They are not run from this checkout. If a future change adds one, on a Kopie Quant machine it goes through `kq-link` to the farm, for example `kq-link --wait --repo <repo> <name> "<cmd>"`, as `kq-board/kq-logic-board/laws/working-with-kq-farm/README.md` describes.
+No local command in this repository is link-class. The only local check is `actionlint`. The `cargo test` and `docker build` steps inside the reusable workflows run on GitHub Actions runners when a caller invokes them. They are not run from this checkout. If a future change adds one, on a Kopie Quant machine it goes through `kq-link` to the farm, for example `kq-link --wait --repo <repo> <name> "<cmd>"`, as `kq-atlas/kq-logic-board/laws/working-with-kq-farm/README.md` describes.
 
 ## Configuration
 
@@ -109,13 +109,13 @@ Whether `Commit Trailer Check` is a required status check on `main` is set in Gi
 
 ## Branches and how work lands
 
-Law: `kq-board/kq-logic-board/github-environment-rules/branch-classes.md`.
+Law: `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md`.
 
 That page puts `dot-github` (`Kopie-Quant-LLC/.github`) in the class "Not running right now": the Pipeline & Quality Loop does not cover it yet. The table lists branches `main` and `development`, with `main` as the only branch today. Its "how work lands" cell reads: development; once the Pipeline & Quality Loop covers it, a pull request into `main` that the CEO merges. The CEO merges `main`.
 
 Local state differs from the table. The checkout has `main` and three topic branches (`ci/self-hosted-runners`, `ci/terraform-plan-hosted`, `fix/commit-trailer-event-aware`) whose changes were already squash-merged. No `development` branch exists locally or among the remote-tracking refs. Remote state was not re-fetched. History shows work arriving as pull requests into `main`, and `AGENTS.md` says never push directly to `main`.
 
-Two board pages disagree on this repository's status. `branch-classes.md` lists it as not running with a `development` branch. `kq-board/kq-logic-board/development-loops/colby/pr-routes/README.md` lists it as active, with a topic branch and a pull request into `main` and no `development` base. The code agrees with `pr-routes`. The branch class table is the law, and this disagreement is unresolved.
+Two board pages disagree on this repository's status. `branch-classes.md` lists it as not running with a `development` branch. `kq-atlas/kq-logic-board/development-loops/colby/pr-routes/README.md` lists it as active, with a topic branch and a pull request into `main` and no `development` base. The code agrees with `pr-routes`. The branch class table is the law, and this disagreement is unresolved.
 
 Landing a change on `main` does not deploy it. Callers in other repositories receive a change only after a release tag is cut.
 
@@ -123,13 +123,13 @@ Landing a change on `main` does not deploy it. Callers in other repositories rec
 
 | Page | Governs |
 |---|---|
-| `kq-board/kq-logic-board/github-environment-rules/README.md` | GitHub Environments & Rules, the index. |
-| `kq-board/kq-logic-board/github-environment-rules/branch-classes.md` | Branch class of this repository. |
-| `kq-board/kq-logic-board/github-environment-rules/law.md` | Runner law: jobs run on the Mac mini unless they need Linux. This repository has no runner-routing guard and no hosted-runner allow-list file, and runs four hosted jobs. |
-| `kq-board/kq-logic-board/github-environment-rules/ci-cd-rules.md` | CI runs locally first, GitHub confirms. |
-| `kq-board/kq-logic-board/devops-architecture/github-workflows-architecture.md` | Target workflow layout. It describes planned lanes this repository does not have yet: `reusable-gate-*`, `reusable-battery`, `reusable-smoke`, `reusable-gitignore-guard`, a floating major tag and a `merge_group` trigger. Treat those as planned, not built. |
-| `kq-board/kq-logic-board/development-loops/colby/pr-routes/README.md` | Where landed work goes. |
-| `kq-board/kq-logic-board/laws/working-with-kq-farm/README.md` | Running link-class jobs through `kq-link`. |
+| `kq-atlas/kq-logic-board/github-environment-rules/README.md` | GitHub Environments & Rules, the index. |
+| `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md` | Branch class of this repository. |
+| `kq-atlas/kq-logic-board/github-environment-rules/law.md` | Runner law: jobs run on the Mac mini unless they need Linux. This repository has no runner-routing guard and no hosted-runner allow-list file, and runs four hosted jobs. |
+| `kq-atlas/kq-logic-board/github-environment-rules/ci-cd-rules.md` | CI runs locally first, GitHub confirms. |
+| `kq-atlas/kq-logic-board/devops-architecture/github-workflows-architecture.md` | Target workflow layout. It describes planned lanes this repository does not have yet: `reusable-gate-*`, `reusable-battery`, `reusable-smoke`, `reusable-gitignore-guard`, a floating major tag and a `merge_group` trigger. Treat those as planned, not built. |
+| `kq-atlas/kq-logic-board/development-loops/colby/pr-routes/README.md` | Where landed work goes. |
+| `kq-atlas/kq-logic-board/laws/working-with-kq-farm/README.md` | Running link-class jobs through `kq-link`. |
 
 Repositories that call this one: `kq-terminal`, `kq-l1-data-engineering`, `kq-l1-compute-orchestration`, `kq-infra`, `kq-client-management`, `sites/kq-website`.
 

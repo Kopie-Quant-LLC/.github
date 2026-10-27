@@ -160,7 +160,7 @@ The sync matrix is out of date against the estate at the kq root. Only `kq-termi
 
 ## Runners
 
-Ten workflow files run on `[self-hosted, macOS, ARM64]`. Four jobs run on hosted `ubuntu-latest`: the three jobs in `reusable-security.yml` and the one job in `reusable-terraform-plan.yml` (its comment says Checkov and `tfsec` are Docker-container actions that need Linux). This repo has no runner-routing guard and no `.github/hosted-runner-allow` file, so the hosted jobs are undeclared. `kq-board/kq-logic-board/github-environment-rules/law.md` lists this as a finding.
+Ten workflow files run on `[self-hosted, macOS, ARM64]`. Four jobs run on hosted `ubuntu-latest`: the three jobs in `reusable-security.yml` and the one job in `reusable-terraform-plan.yml` (its comment says Checkov and `tfsec` are Docker-container actions that need Linux). This repo has no runner-routing guard and no `.github/hosted-runner-allow` file, so the hosted jobs are undeclared. `kq-atlas/kq-logic-board/github-environment-rules/law.md` lists this as a finding.
 
 ## Commit rules (enforced by CI)
 
@@ -182,20 +182,20 @@ Whether `Commit Trailer Check / check` is a required status in the GitHub rulese
 
 ## Branches and how work lands
 
-The law is `kq-board/kq-logic-board/github-environment-rules/branch-classes.md`. It lists `dot-github` (`Kopie-Quant-LLC/.github`) under "Not running right now", because the Pipeline & Quality Loop does not cover it. The table gives branches `main` and `development`, branch today `main`, and work landing on `development`, then, once the loop covers the repo, a PR into `main` that the CEO merges.
+The law is `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md`. It lists `dot-github` (`Kopie-Quant-LLC/.github`) under "Not running right now", because the Pipeline & Quality Loop does not cover it. The table gives branches `main` and `development`, branch today `main`, and work landing on `development`, then, once the loop covers the repo, a PR into `main` that the CEO merges.
 
 The local clone differs from the table. It has `main` (tracking `origin/main`) and no `development` branch, locally or in remote-tracking refs (not re-fetched). Three side branches (`ci/self-hosted-runners`, `ci/terraform-plan-hosted`, `fix/commit-trailer-event-aware`) hold work that is already on `main` through squash merges (inferred from matching subjects, not proven).
 
-Two board pages disagree on this repo. `branch-classes.md` says "Not running right now". `kq-board/kq-logic-board/development-loops/colby/pr-routes/README.md` marks it ACTIVE (CEO, 2026-08-13): topic branch, then PR to `main`, no `development` base. The local branches match the second page. `branch-classes.md` is the newer page (changed 2026-10-04, against 2026-10-03 for `pr-routes`). The CEO decides which one is authoritative.
+Two board pages disagree on this repo. `branch-classes.md` says "Not running right now". `kq-atlas/kq-logic-board/development-loops/colby/pr-routes/README.md` marks it ACTIVE (CEO, 2026-08-13): topic branch, then PR to `main`, no `development` base. The local branches match the second page. `branch-classes.md` is the newer page (changed 2026-10-04, against 2026-10-03 for `pr-routes`). The CEO decides which one is authoritative.
 
 ## Board law and gaps
 
 Pages that govern this repo:
 
-- `kq-board/kq-logic-board/github-environment-rules/README.md`, `branch-classes.md`, `law.md`, `ci-cd-rules.md`
-- `kq-board/kq-logic-board/devops-architecture/github-workflows-architecture.md`
-- `kq-board/kq-logic-board/development-loops/colby/pr-routes/README.md`
-- `kq-board/kq-logic-board/laws/working-with-kq-farm/README.md` (`kq-link` routing for link-class jobs)
+- `kq-atlas/kq-logic-board/github-environment-rules/README.md`, `branch-classes.md`, `law.md`, `ci-cd-rules.md`
+- `kq-atlas/kq-logic-board/devops-architecture/github-workflows-architecture.md`
+- `kq-atlas/kq-logic-board/development-loops/colby/pr-routes/README.md`
+- `kq-atlas/kq-logic-board/laws/working-with-kq-farm/README.md` (`kq-link` routing for link-class jobs)
 
 The workflows page describes a target state this repo does not contain: `reusable-gate-*` lanes, `reusable-battery`, `reusable-smoke`, `reusable-gitignore-guard`, a `merge_group` trigger in `ci.yml`, and one floating major tag. All of those are planned, not built. `agents-md-header-sync.yml` carries a cron, which that page does not allow outside its named doors.
 
