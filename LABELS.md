@@ -1,6 +1,10 @@
 # Kopie-Quant-LLC — Unified GitHub Labels
 
-This document defines the **standardized label system** used across all repositories in the Kopie-Quant-LLC organization. Every repo must use this exact label set to ensure consistency in issue tracking, PR triage, and sprint planning.
+This document is the catalog of the label set for the Kopie-Quant-LLC organization: 25 labels with exact names, colors and descriptions. The intent is that every repo uses this exact set, so issue tracking and PR triage read the same everywhere.
+
+**How the catalog is applied.** Labels live on GitHub. This repo holds no label-sync file and no workflow that creates or applies these labels, so a person creates them by hand (see "Adding Labels to a New Repo"). Which repos carry the set today is not recorded in code. Read the label list in each repo's GitHub settings to check.
+
+Related files in this repo: the issue templates in `.github/ISSUE_TEMPLATE/` and the repo overview in `README.md`. See `AGENTS.md` for the working rules.
 
 ---
 
@@ -28,7 +32,7 @@ This document defines the **standardized label system** used across all reposito
 
 ### Usage
 - Every issue **must** have exactly one `priority:` label before sprint planning.
-- `priority: critical` triggers immediate Slack notification to `#kq-alerts`.
+- `priority: critical` marks production impact. No workflow in the kq repos notifies Slack when it is applied, so a person must raise the alert.
 
 ---
 
@@ -41,9 +45,9 @@ This document defines the **standardized label system** used across all reposito
 | `review: agent-ok` | ![#0E8A16](https://placehold.co/15x15/0E8A16/0E8A16.png) | `#0E8A16` | CI/CD agent validated — human review pending |
 
 ### Usage
-- `review: agent-ok` is applied automatically by CI when all checks pass.
-- `review: hitl-required` blocks merge until a human approves.
-- `review: lead-dev` requires explicit sign-off from a lead developer.
+- `review: agent-ok` is applied by hand. No workflow applies it when checks pass.
+- `review: hitl-required` means a human must approve before merge. The label is a convention. No workflow in this repo enforces it.
+- `review: lead-dev` means explicit sign-off from a lead developer. Both handles in the description are real code owners. `@colbyvk` owns domain code in `kq-terminal/.github/CODEOWNERS` and `kq-l1-compute-orchestration/.github/CODEOWNERS`. This repo's `.github/CODEOWNERS` names only `@YXZYSME`.
 
 ---
 
@@ -59,7 +63,21 @@ This document defines the **standardized label system** used across all reposito
 
 ### Usage
 - Apply `scope:` labels to indicate which service is affected.
-- Cross-cutting changes may have multiple `scope:` labels.
+- Cross-cutting changes can have multiple `scope:` labels.
+
+### Scope labels against the estate
+
+The descriptions above are the label text this catalog defines. They are not confirmed against any repo's labels on GitHub. The table shows what each name maps to in the current kq root.
+
+| Label | In the kq root today |
+|-------|----------------------|
+| `scope: infra` | `kq-infra`. The `infra_change` issue template applies this label. |
+| `scope: victory-engine` | No `kq-victory-engine` directory in the kq root. Whether the GitHub repo `Kopie-Quant-LLC/kq-victory-engine` still exists is not verified (`agents-md-header-sync.yml` still targets it). The code is the crate `crates/victory-engine` inside `kq-l1-data-engineering`. |
+| `scope: admin-portal` | `sites/kq-admin` (GitHub `Kopie-Quant-LLC/kq-admin`), the internal admin console. Its checked-out branch `feat/update-admin-portal` is a frontend prototype on mock data. Its `main` branch still holds a FastAPI backend. The description text `kq_admin_portal` is an old name. |
+| `scope: matchmaking` | No `kq_matchmaking_engine` directory exists. Stale name. |
+| `scope: shared-lib` | No `kq_shared_lib` directory exists. Stale name. |
+
+No `scope:` label exists for most repos at the kq root, including `kq-terminal`, `kq-core-backend`, `kq-l1-data-engineering`, `kq-l1-compute-orchestration`, `kq-client-management`, `kq-enterprise-portal`, `kq-farm`, `kq-farm-dispatch`, `kq-doc-services`, `kq-development-env`, `kq-atlas`, `kq-zeus-engine` and `sites/kq-website` (the public site, GitHub `Kopie-Quant-LLC/kq-website`). `sites/kq-admin` is covered by `scope: admin-portal` above. Adding or renaming a scope label is a change to this file, which `.github/CODEOWNERS` assigns to `@YXZYSME`. This file will then change, and the count table at the top must change with it.
 
 ---
 
@@ -74,8 +92,8 @@ This document defines the **standardized label system** used across all reposito
 | `status: ready-for-review` | ![#0075CA](https://placehold.co/15x15/0075CA/0075CA.png) | `#0075CA` | Ready for code review |
 
 ### Usage
-- `status: do-not-merge` **must** be applied to any draft or WIP PR.
-- `status: blocked` should include a comment explaining the blocker.
+- `status: do-not-merge` **must** be applied to any draft or WIP PR. A person applies it. No rule in the repo enforces it.
+- `status: blocked` must include a comment that explains the blocker.
 
 ---
 
@@ -95,15 +113,17 @@ This document defines the **standardized label system** used across all reposito
 ### Usage
 - Every issue and PR **must** have exactly one `type:` label.
 - `type: hotfix` follows the expedited review process (skip sprint queue).
+- The issue templates apply a label on creation: `bug_report` applies `type: bug`, `feature_request` applies `type: feature`, and `infra_change` applies `scope: infra`. All three names are in this set.
 
 ---
 
+## Labels outside the 25
+
+The workflow `.github/workflows/agents-md-header-sync.yml` opens issues labelled `agents-md-drift` in the repos it checks. That label is not in the 25-label set and is not counted above. GitHub creates the label on first use if the repo lacks it.
+
 ## Repositories Using This Label Set
 
-| Repository | Status |
-|------------|--------|
-| `Kopie-Quant-LLC/Production` | Synced |
-| `Kopie-Quant-LLC/kq-victory-engine` | Synced |
+The earlier table listed `Kopie-Quant-LLC/Production` and `Kopie-Quant-LLC/kq-victory-engine` as synced. Neither is a directory in the kq root, and no code records sync state, so this file no longer claims a repo list. Check each repo's labels page on GitHub.
 
 ---
 
@@ -115,5 +135,5 @@ This document defines the **standardized label system** used across all reposito
 
 ---
 
-> **Maintained by:** Kopie-Quant-LLC Engineering  
-> **Last updated:** April 5, 2026
+> **Maintained by:** Kopie-Quant-LLC Engineering. Code owner for this repo: `@YXZYSME` (`.github/CODEOWNERS`).  
+> **Label definitions last changed:** April 5, 2026. Reviewed against the code: October 2026.
