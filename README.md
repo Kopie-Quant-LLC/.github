@@ -115,7 +115,7 @@ That page puts `dot-github` (`Kopie-Quant-LLC/.github`) in the class "Not runnin
 
 Local state differs from the table. The checkout has `main` and three topic branches (`ci/self-hosted-runners`, `ci/terraform-plan-hosted`, `fix/commit-trailer-event-aware`) whose changes were already squash-merged. No `development` branch exists locally or among the remote-tracking refs. Remote state was not re-fetched. History shows work arriving as pull requests into `main`, and `AGENTS.md` says never push directly to `main`.
 
-Two board pages disagree on this repository's status. `branch-classes.md` lists it as not running with a `development` branch. `kq-atlas/kq-logic-board/development-loops/colby/pr-routes/README.md` lists it as active, with a topic branch and a pull request into `main` and no `development` base. The code agrees with `pr-routes`. The branch class table is the law, and this disagreement is unresolved.
+`kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md` lists this repository as not running. The code has a topic branch and a pull request into `main`, with no `development` base.
 
 Landing a change on `main` does not deploy it. Callers in other repositories receive a change only after a release tag is cut.
 
@@ -128,7 +128,7 @@ Landing a change on `main` does not deploy it. Callers in other repositories rec
 | `kq-atlas/kq-logic-board/github-environment-rules/law.md` | Runner law: jobs run on the Mac mini unless they need Linux. This repository has no runner-routing guard and no hosted-runner allow-list file, and runs four hosted jobs. |
 | `kq-atlas/kq-logic-board/github-environment-rules/ci-cd-rules.md` | CI runs locally first, GitHub confirms. |
 | `kq-atlas/kq-logic-board/devops-architecture/github-workflows-architecture.md` | Target workflow layout. It describes planned lanes this repository does not have yet: `reusable-gate-*`, `reusable-battery`, `reusable-smoke`, `reusable-gitignore-guard`, a floating major tag and a `merge_group` trigger. Treat those as planned, not built. |
-| `kq-atlas/kq-logic-board/development-loops/colby/pr-routes/README.md` | Where landed work goes. |
+| `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md` | Where landed work goes. |
 | `kq-atlas/kq-logic-board/laws/working-with-kq-farm/README.md` | Running link-class jobs through `kq-link`. |
 
 Repositories that call this one: `kq-terminal`, `kq-l1-data-engineering`, `kq-l1-compute-orchestration`, `kq-infra`, `kq-client-management`, `sites/kq-website`.
