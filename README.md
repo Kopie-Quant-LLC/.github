@@ -8,7 +8,6 @@ It is not a product. It serves every product indirectly: the repositories that b
 
 | Path | What it holds | State |
 |---|---|---|
-| `.github/workflows/ci.yml` | This repository's pull-request gate (`CI — PR Gate`). Runs one job, `Commit Trailer Check`, on `pull_request` into `main`. | built, live |
 | `.github/workflows/reusable-*.yml` | 11 callable workflows (`workflow_call`). See [Reusable workflows](#reusable-workflows). | built, 5 live, 6 unreached |
 | `.github/workflows/agents-md-header-sync.yml` | Weekly drift check of the `AGENTS.md` canonical header across repositories. | built, live |
 | `.github/CODEOWNERS` | Owner of `*`, `/workflow-templates/` and `/.github/workflows/` is `@YXZYSME`. The `/workflow-templates/` directory does not exist. | built, live |
@@ -26,7 +25,7 @@ Not in this repository: `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, 
 The repository has two kinds of workflow file.
 
 - **Callable files.** Each `reusable-*.yml` carries only `workflow_call`. A caller in another repository runs it with `uses:` and passes inputs.
-- **Triggered files.** `ci.yml` runs on pull requests into `main`. `agents-md-header-sync.yml` runs on `workflow_dispatch` and on a Monday 14:30 UTC cron.
+- **Triggered files.** `agents-md-header-sync.yml` runs on `workflow_dispatch` and on a Monday 14:30 UTC cron.
 
 A caller names a lane and a release tag:
 
@@ -96,16 +95,14 @@ This repository reads no environment variables and serves no ports. The workflow
 
 ## Tests
 
-None. This repository has no `tests/` directory. The only local check is `actionlint`, above. `ci.yml` does not exercise the other reusable lanes.
+None. This repository has no `tests/` directory. The only local check is `actionlint`, above.
 
 ## CI
 
 | Workflow | Trigger | What it gates |
 |---|---|---|
-| `ci.yml` (`CI — PR Gate`) | `pull_request` into `main`. Cancels an older run on the same ref. Permission `contents: read`. | Commit trailers only. It runs no branch-name check, no `actionlint`, and no lane test. It has no `merge_group` trigger. |
 | `agents-md-header-sync.yml` | `workflow_dispatch` and Monday 14:30 UTC | Not a gate. Opens drift issues. |
 
-Whether `Commit Trailer Check` is a required status check on `main` is set in GitHub rulesets. It is not in this repository and was not verified.
 
 ## Branches and how work lands
 
