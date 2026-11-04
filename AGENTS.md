@@ -174,7 +174,7 @@ Whether `Commit Trailer Check / check` is a required status in the GitHub rulese
 
 ## Working in this repo
 
-- Land work as the Branches section below states. The law (`branch-classes.md`) routes work through `development`, but no `development` branch exists yet. Do not create one, and do not pick a route on your own. Ask the CEO. Use a `<type>/<slug>` branch name, never push to `main`, and never self-merge.
+- Land work as the Branches section below states. Use a branch name you choose, never push to `main`, and never self-merge.
 - Pass `github.event` and `github.head_ref` values into scripts through `env:`, not by direct interpolation. `reusable-branch-name-check.yml` does not do this yet.
 - Do not add a trigger to a reusable workflow. `devops-architecture/github-workflows-architecture.md` allows triggers only in four door files: `ci.yml` (`pull_request` + `merge_group`), `battery.yml` (nightly `schedule`), `schedule.yml` (`schedule`, long work) and `deploy.yml` (`workflow_dispatch`). The one callable exception is `gitignore-guard.yml`.
 - Do not tag a release or push anything from a subagent. Tags are a GitHub action for the main session or the CEO.
@@ -182,11 +182,7 @@ Whether `Commit Trailer Check / check` is a required status in the GitHub rulese
 
 ## Branches and how work lands
 
-The law is `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md`. It lists `dot-github` (`Kopie-Quant-LLC/.github`) under "Not running right now", because the Pipeline & Quality Loop does not cover it. The table gives branches `main` and `development`, branch today `main`, and work landing on `development`, then, once the loop covers the repo, a PR into `main` that the CEO merges.
-
-The local clone differs from the table. It has `main` (tracking `origin/main`) and no `development` branch, locally or in remote-tracking refs (not re-fetched). Three side branches (`ci/self-hosted-runners`, `ci/terraform-plan-hosted`, `fix/commit-trailer-event-aware`) hold work that is already on `main` through squash merges (inferred from matching subjects, not proven).
-
-`kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md` lists it under "Not running right now". The local branches are a topic branch and `main`, with no `development` base.
+This is an internal repository: see The branches of an internal repository in `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md`. It holds `main` and one branch per open pull request, in any name the agent chooses except `main`, `master`, `development` or an integration branch's name. Each change is one pull request straight into `main` through `/git-workflow-internal`, and only the CEO merges it. No integration round runs here.
 
 ## Board law and gaps
 

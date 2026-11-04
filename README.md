@@ -106,13 +106,7 @@ None. This repository has no `tests/` directory. The only local check is `action
 
 ## Branches and how work lands
 
-Law: `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md`.
-
-That page puts `dot-github` (`Kopie-Quant-LLC/.github`) in the class "Not running right now": the Pipeline & Quality Loop does not cover it yet. The table lists branches `main` and `development`, with `main` as the only branch today. Its "how work lands" cell reads: development; once the Pipeline & Quality Loop covers it, a pull request into `main` that the CEO merges. The CEO merges `main`.
-
-Local state differs from the table. The checkout has `main` and three topic branches (`ci/self-hosted-runners`, `ci/terraform-plan-hosted`, `fix/commit-trailer-event-aware`) whose changes were already squash-merged. No `development` branch exists locally or among the remote-tracking refs. Remote state was not re-fetched. History shows work arriving as pull requests into `main`, and `AGENTS.md` says never push directly to `main`.
-
-`kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md` lists this repository as not running. The code has a topic branch and a pull request into `main`, with no `development` base.
+This is an internal repository: see The branches of an internal repository in `kq-atlas/kq-logic-board/github-environment-rules/branch-classes.md`. It holds `main` and one branch per open pull request, in any name the agent chooses except `main`, `master`, `development` or an integration branch's name. Each change is one pull request straight into `main` through `/git-workflow-internal`, and only the CEO merges it. No integration round runs here.
 
 Landing a change on `main` does not deploy it. Callers in other repositories receive a change only after a release tag is cut.
 
