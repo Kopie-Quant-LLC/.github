@@ -1,6 +1,7 @@
 name: Reusable — Static Site to S3 + CloudFront
 # Wave 3 W3-B0: extracts common static-deploy pattern used by kq-website
 # v1.2.1: Added cache-dependency-path input for monorepo/subdirectory layouts
+# v1.6.0: Every object is uploaded with a Cache-Control header: hashed _next/static/ for a year, the rest revalidated
 # © Kopie Quant LLC
 
 on:
@@ -76,9 +77,24 @@ jobs:
           ID=$(aws ssm get-parameter --name "${{ inputs.cloudfront-distribution-ssm-param }}" --query Parameter.Value --output text)
           echo "id=$ID" >> "$GITHUB_OUTPUT"
 
+      # Every object carries a Cache-Control header (v1.6.0, CEO 2026-11-15). Before it, no object had one, so a browser
+      # chose its own freshness from Last-Modified and served a page a week old on a plain click; only a hard refresh
+      # asked again. Three passes, in this order:
+      #   1. _next/static/ holds content-hashed files whose bytes never change under one name: cached a year, immutable.
+      #   2. every other file (the HTML, the route payloads, robots, icons): the browser revalidates each load (max-age=0,
+      #      a 304 when the ETag still matches) and the edge keeps it a day (s-maxage), which the invalidation below clears.
+      #   3. a --delete sync removes what the build no longer holds. --size-only keeps it from uploading again: passes 1
+      #      and 2 left every object at its file's size, so an upload here would only strip the header it was given.
       - name: Sync to S3
+        env:
+          OUT: ${{ inputs.build-output-dir }}
+          BUCKET: s3://${{ inputs.s3-bucket }}
         run: |
-          aws s3 sync ${{ inputs.build-output-dir }}/ s3://${{ inputs.s3-bucket }} --delete
+          if [ -d "$OUT/_next/static" ]; then
+            aws s3 sync "$OUT/_next/static/" "$BUCKET/_next/static/" --cache-control "public, max-age=31536000, immutable"
+          fi
+          aws s3 sync "$OUT/" "$BUCKET" --exclude "_next/static/*" --cache-control "public, max-age=0, s-maxage=86400, must-revalidate"
+          aws s3 sync "$OUT/" "$BUCKET" --delete --size-only
 
       - name: Invalidate CloudFront (full)
         run: |
