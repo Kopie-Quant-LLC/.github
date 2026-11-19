@@ -4,11 +4,21 @@
 
 It is not a product. It serves every product indirectly: the repositories that build and deploy the kq products call its workflows by release tag. It contains YAML, Markdown, one generated JSON file (`docs/code-map.json`), the plain-text `CODEOWNERS` file, and images. It has no manifest, no build and no test suite.
 
+## The control panel for the product gates
+
+Since 2026-11-19 (CEO), this repository is the one control panel for the pull-request gate of the seven product repositories. Their `ci.yml`
+is one job that calls [`.github/workflows/product-gate.yml`](.github/workflows/product-gate.yml) at a tag, and the gate picks the runner from
+the PR's target: GitHub-hosted `ubuntu-latest` into `main`, the mini into `integration`. [`.github/runner-policy.md`](.github/runner-policy.md)
+holds the classes, the runners, the two organization variables that switch them and how a change rolls out by tag. Every other repository's
+PRs run on the mini, as before. State: built on a branch, not merged and not tagged.
+
 ## What is in it
 
 | Path | What it holds | State |
 |---|---|---|
-| `.github/workflows/reusable-*.yml` | 11 callable workflows (`workflow_call`). See [Reusable workflows](#reusable-workflows). | built, 5 live, 6 unreached |
+| `.github/workflows/product-gate.yml` | The one PR gate of every product repository: intake, security and the repository's own lane scripts, on the runner the PR's target picks. | built, unreached until the product callers merge |
+| `.github/runner-policy.md` | The runner of each repository class and target branch, and the organization variables that switch it. | built |
+| `.github/workflows/reusable-*.yml` | Callable workflows (`workflow_call`), the two guards among them. See [Reusable workflows](#reusable-workflows). | built; the guards and the terraform plan unreached until the product callers merge |
 | `.github/workflows/agents-md-header-sync.yml` | Weekly drift check of the `AGENTS.md` canonical header across repositories. | built, live |
 | `.github/CODEOWNERS` | Owner of `*`, `/workflow-templates/` and `/.github/workflows/` is `@YXZYSME`. The `/workflow-templates/` directory does not exist. | built, live |
 | `.github/ISSUE_TEMPLATE/` | `bug_report.md`, `feature_request.md`, `infra_change.md`. There is no `config.yml`. | built, live |
@@ -18,7 +28,7 @@ It is not a product. It serves every product indirectly: the repositories that b
 | `profile/` | `README.md` is the public organization profile, with the PNG banners it shows. | built, live |
 | `docs/code-map.json` | Generated map from the retired Jules bot. It lists workflows that no longer exist. | stale, do not use |
 
-Not in this repository: `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `dependabot.yml`, `workflow-templates/`, `.github/hosted-runner-allow`, and any runner-routing guard. Dependabot and the Jules workflows were removed in commits `7a884bf` and `cbee828`.
+Not in this repository: `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `dependabot.yml`, `workflow-templates/`, and `.github/hosted-runner-allow`; the runner-routing guard here is the shared one the product gate calls. Dependabot and the Jules workflows were removed in commits `7a884bf` and `cbee828`.
 
 ## How it works
 
