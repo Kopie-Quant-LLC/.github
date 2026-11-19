@@ -1,0 +1,47 @@
+# reusable-runner-routing-guard — CI stays on the mini unless the runner switch or a declaration says otherwise (CEO, 2026-09-01 and 2026-11-19).
+# Moved from the byte-identical copy every product repository carried (estate copy blob 04c535fc), now one file the shared gate calls.
+#
+# The incident this exists to end: new tests quietly landed on `ubuntu-latest` until the metered hosted usage devoured a day's budget
+# (measured 2026-09-01, $8.27 gross in one morning). A product PR into main now runs hosted, but only through the one switch of
+# product-gate.yml (runner-policy.md), which never writes a `runs-on:` line in the product repository. Any hosted label a product repository
+# writes itself is a priced exception: DECLARED with one line in its .github/hosted-runner-allow, "<workflow-file> <job-key>", beside its
+# reason. An undeclared hosted label fails this check BY NAME.
+#
+# `persist-credentials: false`: zizmor's `artipacked` finding; this guard reads the working tree only.
+name: reusable-runner-routing-guard
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  runner-routing:
+    name: Runner Routing (hosted runners come from the switch or are declared)
+    runs-on: ${{ fromJSON(github.base_ref == 'main' && (vars.KQ_RUNNER_PR_MAIN || '["ubuntu-latest"]') || (vars.KQ_RUNNER_PR_INTEGRATION || '["self-hosted","macOS","ARM64"]')) }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Every hosted runner the repository names is on its allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          ALLOW=.github/hosted-runner-allow
+          fail=0
+          for wf in .github/workflows/*.yml; do
+            base=$(basename "$wf")
+            while IFS='|' read -r job line; do
+              [ -n "$job" ] || continue
+              if ! grep -qE "^${base}[[:space:]]+${job}([[:space:]]|$)" "$ALLOW" 2>/dev/null; then
+                echo "::error file=${wf}::undeclared HOSTED runner — job '${job}' (${line# }). A PR gate runs only through Kopie-Quant-LLC/.github product-gate.yml; any other job routes to [self-hosted, macOS, ARM64], or declares '${base} ${job}' in ${ALLOW} with its reason."
+                fail=1
+              fi
+            done < <(awk '
+              /^[[:space:]]{2}[A-Za-z0-9_-]+:[[:space:]]*$/ { j=$1; sub(/:$/,"",j) }
+              /^[[:space:]]+runs-on:[[:space:]]*.*(ubuntu-|windows-|macos-)/ { print j "|" $0 }
+            ' "$wf")
+          done
+          if [ "$fail" = 0 ]; then
+            echo "runner routing clean: every hosted runner this repository names is declared"
+          fi
+          exit "$fail"

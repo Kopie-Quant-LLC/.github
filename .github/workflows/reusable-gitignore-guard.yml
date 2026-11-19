@@ -1,0 +1,43 @@
+# reusable-gitignore-guard — no ignored artifact enters a merge (plan gap 30, IC-6).
+# Moved as it is from the byte-identical copy every product repository carried (estate copy blob 4ced9550), now one file the shared gate calls.
+# PR-added files (A/C/R) are matched against the repository's OWN ignore law via `git check-ignore --no-index` (--no-index is load-bearing:
+# without it, tracked files never match). Deliberate exceptions: add the exact path to .github/gitignore-guard-allow.
+#
+# `persist-credentials: false` on the checkout: without it zizmor raises `artipacked` (measured 2026-08-31). The guard reads local git only.
+# Known and kept as it was: on a dispatch the event carries no pull request, so the range is empty and the guard reports no added files.
+name: reusable-gitignore-guard
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  gitignore-guard:
+    name: Gitignore Guard (no ignored artifact enters the merge)
+    runs-on: ${{ fromJSON(github.base_ref == 'main' && (vars.KQ_RUNNER_PR_MAIN || '["ubuntu-latest"]') || (vars.KQ_RUNNER_PR_INTEGRATION || '["self-hosted","macOS","ARM64"]')) }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: PR-added files must not match the repository's own .gitignore
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          ALLOW=".github/gitignore-guard-allow"
+          added="$(git diff --name-only --diff-filter=ACR "${BASE}..${HEAD_SHA}")"
+          if [ -z "$added" ]; then echo "gitignore-guard: no added files"; exit 0; fi
+          viol="$(printf '%s\n' "$added" | git check-ignore --stdin --no-index || true)"
+          if [ -n "$viol" ] && [ -f "$ALLOW" ]; then
+            viol="$(printf '%s\n' "$viol" | grep -vxF -f <(grep -v '^#' "$ALLOW" | sed '/^$/d') || true)"
+          fi
+          if [ -n "$viol" ]; then
+            echo "::error::These PR-added files match this repository's own .gitignore — an ignored artifact must never enter the merge:"
+            printf '%s\n' "$viol"
+            echo "Fix: drop the file from the PR, or correct the .gitignore rule, or (deliberate, rare) add the exact path to ${ALLOW} in the same PR."
+            exit 1
+          fi
+          echo "gitignore-guard: clean ($(printf '%s\n' "$added" | wc -l | tr -d ' ') added file(s) checked)"
