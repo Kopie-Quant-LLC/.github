@@ -71,6 +71,11 @@ on:
         required: false
         type: number
         default: 15
+      security-timeout-minutes:
+        description: "The secret scan and workflow audit's limit."
+        required: false
+        type: number
+        default: 15
       gitleaks-version:
         description: "The gitleaks release the secret scan installs, checked against its published checksums."
         required: false
@@ -133,7 +138,7 @@ jobs:
   security:
     name: security
     runs-on: ${{ fromJSON(github.base_ref == 'main' && (vars.KQ_RUNNER_PR_MAIN || '["ubuntu-latest"]') || (vars.KQ_RUNNER_PR_INTEGRATION || '["self-hosted","macOS","ARM64"]')) }}
-    timeout-minutes: 10
+    timeout-minutes: ${{ inputs.security-timeout-minutes }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
