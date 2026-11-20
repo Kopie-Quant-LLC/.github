@@ -49,6 +49,25 @@ PRs into `main` back to the mini.
    moves in the same round.
 4. A runner change alone needs no tag: it is an organization variable.
 
+## Caches (CEO 2026-11-20)
+
+Each runner reads the cache it can use, and nothing else.
+
+| Runner | Compiles through | Cargo home | GitHub cache |
+|---|---|---|---|
+| The mini | the farm's sccache store, named by the runner's `.env` (kq-farm `install/runner-env`) | the runner's own `~/.cargo` | none: it restores and saves nothing |
+| GitHub-hosted (a PR into `main`, and the seed) | sccache with GitHub's cache as its store | the job's own | `Swatinem/rust-cache`, one key per lane |
+
+- **The seed.** `ci.yml` runs the gate once more on `main` after each merge (`pull_request_target`, `closed`). That run compares against the
+  repository's first commit, so it compiles the whole workspace, and it declares `cache-mode: write`, so its save is not skipped. It has
+  the seed's own limit (`seed-timeout-minutes`, 60) and a concurrency group of its own, so nothing cancels it. Every new PR into `main`
+  restores what it saved.
+- **The cleanup.** `ci.yml` calls [`reusable-cache-cleanup.yml`](workflows/reusable-cache-cleanup.yml) when a pull request closes, which deletes
+  every cache scoped to that pull request. GitHub gives a repository 10 GB, and evicts the oldest entries first, which are `main`'s.
+- **Why.** Until 2026-11-20 the mini saved its macOS caches to GitHub, where no hosted job could read them, and the seed's save was skipped
+  for want of `cache-mode: write`. kq-core-backend held 10.4 GB, `main` held no Linux cache, and every PR into `main` compiled from
+  nothing: lanes cancelled at 14, 20 and 25 minutes.
+
 ## The guards
 
 - [`reusable-runner-routing-guard.yml`](workflows/reusable-runner-routing-guard.yml): a product job takes a hosted runner only through

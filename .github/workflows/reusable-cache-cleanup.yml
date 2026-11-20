@@ -1,0 +1,39 @@
+# reusable-cache-cleanup — delete a closed pull request's GitHub caches (CEO 2026-11-20).
+# Call it from a product repository's ci.yml, at a tag, in a job of its own that runs when a pull request closes:
+#   cache-cleanup:
+#     if: github.event_name == 'pull_request' && github.event.action == 'closed'
+#     permissions:
+#       actions: write
+#     uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-cache-cleanup.yml@v2.3.0
+# © Kopie Quant LLC
+#
+# Why: a pull request's caches are scoped to refs/pull/<n>/merge, so no other run can read them once it closes, yet they keep their
+# space until GitHub evicts them. Each hosted gate lane saves 0.3 to 0.6 GB per pull request, and sccache adds one entry per compiled
+# unit. With them piled up a repository passes the 10 GB GitHub gives it, and GitHub evicts the oldest entries first, which are main's:
+# kq-core-backend held 10.4 GB on 2026-11-20 and every PR into main compiled from nothing. Deleting them on close keeps main's set.
+# It reads and deletes caches only, and runs no code of the pull request.
+
+name: reusable-cache-cleanup
+
+on:
+  workflow_call:
+
+permissions:
+  actions: write
+
+jobs:
+  delete:
+    name: Delete the closed pull request's caches
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Delete every cache scoped to the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          set -euo pipefail
+          before="$(gh cache list -R "$REPO" --ref "$REF" --limit 10000 --json id --jq 'length')"
+          gh cache delete --all -R "$REPO" --ref "$REF" --succeed-on-no-caches
+          echo "deleted ${before} cache(s) of ${REF}"
