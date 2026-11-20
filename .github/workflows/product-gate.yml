@@ -1,6 +1,6 @@
 # product-gate — the one pull-request gate of every product repository (CEO, 2026-11-19; TASKS_ci_control_panel C2).
 # Call it from a product repository's ci.yml, at a tag:
-#   uses: Kopie-Quant-LLC/.github/.github/workflows/product-gate.yml@v2.0.0
+#   uses: Kopie-Quant-LLC/.github/.github/workflows/product-gate.yml@v2.1.0
 # © Kopie Quant LLC
 #
 # The runner follows the PR's target, and nothing else (runner-policy.md):
@@ -213,17 +213,22 @@ jobs:
           fi
 
       # A hosted runner reads the siblings over HTTPS with the read token: place_siblings.sh's SSH URLs are rewritten to it.
+      # The token goes into git's own credential store, which the lane step reads with no variable of its own. v2.0.0 ran
+      # `gh auth setup-git`, whose helper asks gh for the token at clone time: the lane step holds no GH_TOKEN, so every
+      # sibling clone failed "could not read Username for 'https://github.com'" (2026-11-20, the first PRs into main).
       - name: Sibling access on a hosted runner
         if: runner.environment == 'github-hosted'
         env:
-          GH_TOKEN: ${{ secrets.SIBLING_READ_TOKEN }}
+          SIBLING_READ_TOKEN: ${{ secrets.SIBLING_READ_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "$GH_TOKEN" ]; then
+          if [ -z "$SIBLING_READ_TOKEN" ]; then
             echo "no SIBLING_READ_TOKEN: a lane that places a sibling fails by name in place_siblings.sh"
             exit 0
           fi
-          gh auth setup-git
+          umask 077
+          printf 'https://x-access-token:%s@github.com\n' "$SIBLING_READ_TOKEN" > "$HOME/.git-credentials"
+          git config --global credential."https://github.com".helper store
           git config --global url."https://github.com/".insteadOf "git@github.com:"
 
       - name: Install Rust toolchain
@@ -282,8 +287,8 @@ jobs:
   # (runner-policy.md, How a change rolls out).
   runner-routing-guard:
     if: github.event_name == 'workflow_dispatch'
-    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-runner-routing-guard.yml@v2.0.0
+    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-runner-routing-guard.yml@v2.1.0
 
   gitignore-guard:
     if: github.event_name == 'workflow_dispatch'
-    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-gitignore-guard.yml@v2.0.0
+    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-gitignore-guard.yml@v2.1.0
