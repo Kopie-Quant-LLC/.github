@@ -203,14 +203,27 @@ jobs:
           persist-credentials: false
 
       # The mini: the farm's compile cache, and a cargo home of the job's own, because rust-cache's save trims the registry index of the cargo
-      # home it caches and the runner's own ~/.cargo is the farm's (2026-11-06). A hosted runner has neither, and needs neither.
+      # home it caches and the runner's own ~/.cargo is the farm's (2026-11-06). A hosted runner has no cargo home to protect.
+      # A hosted runner: sccache with GitHub's cache as its store. Each compiled unit is stored as it finishes, so a run cancelled at its
+      # limit still leaves its work to the next, and cc-rs routes C and C++ through the same RUSTC_WRAPPER (cc 1.2,
+      # rustc_wrapper_fallback). Without it, kq-l1-data-engineering#226's lint compiled the bundled DuckDB from source for 25 minutes and
+      # was cancelled at 30, and kq-console#128's rust lane was cancelled while building kq-core-backend's gatekeeper (2026-11-20).
       - name: The runner's compile cache and cargo home
         run: | # zizmor: ignore[github-env] fixed values and a path under the runner's own temp folder, with no value from the event
           if [ "$RUNNER_ENVIRONMENT" = "self-hosted" ]; then
             mkdir -p "$RUNNER_TEMP/cargo-home"
             echo "CARGO_HOME=$RUNNER_TEMP/cargo-home" >> "$GITHUB_ENV"
             echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          else
+            echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+            echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
           fi
+
+      - name: Install sccache (hosted runner)
+        if: runner.environment == 'github-hosted'
+        uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+        with:
+          version: "v0.19.0"
 
       # A hosted runner reads the siblings over HTTPS with the read token: place_siblings.sh's SSH URLs are rewritten to it.
       # The token goes into git's own credential store, which the lane step reads with no variable of its own. v2.0.0 ran
