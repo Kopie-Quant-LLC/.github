@@ -1,6 +1,6 @@
 # product-gate — the one pull-request gate of every product repository (CEO, 2026-11-19; TASKS_ci_control_panel C2).
 # Call it from a product repository's ci.yml, at a tag:
-#   uses: Kopie-Quant-LLC/.github/.github/workflows/product-gate.yml@v2.2.0
+#   uses: Kopie-Quant-LLC/.github/.github/workflows/product-gate.yml@v2.3.0
 # © Kopie Quant LLC
 #
 # The runner follows the PR's target, and nothing else (runner-policy.md):
@@ -66,6 +66,11 @@ on:
         required: false
         type: string
         default: ""
+      seed-timeout-minutes:
+        description: "The lane limit of the seed run, the gate's run on main after a merge (pull_request_target). It builds the whole repository cold, so it has no PR budget."
+        required: false
+        type: number
+        default: 60
       lane-timeout-minutes:
         description: "Each lane's limit."
         required: false
@@ -190,7 +195,11 @@ jobs:
     name: ${{ matrix.lane }}
     if: inputs.lanes != '[]' && (github.event_name != 'pull_request' || github.base_ref == 'main')
     runs-on: ${{ fromJSON(github.base_ref == 'main' && (vars.KQ_RUNNER_PR_MAIN || '["ubuntu-latest"]') || (vars.KQ_RUNNER_PR_INTEGRATION || '["self-hosted","macOS","ARM64"]')) }}
-    timeout-minutes: ${{ inputs.lane-timeout-minutes }}
+    # The seed run (pull_request_target, after a merge into main) builds the whole repository from a cold cache, so it takes the seed's limit.
+    timeout-minutes: ${{ github.event_name == 'pull_request_target' && inputs.seed-timeout-minutes || inputs.lane-timeout-minutes }}
+    # GitHub gives pull_request_target a read-only cache since 2026-06-26, and a save there only logs a skip. Without this line the seed run
+    # never saved main's Linux cache, so every PR into main compiled from nothing on a 2-core runner (kq-core-backend#248, 2026-11-20).
+    cache-mode: write
     strategy:
       fail-fast: false
       matrix:
@@ -202,8 +211,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # The mini: the farm's compile cache, and a cargo home of the job's own, because rust-cache's save trims the registry index of the cargo
-      # home it caches and the runner's own ~/.cargo is the farm's (2026-11-06). A hosted runner has no cargo home to protect.
+      # The mini reads its own local caches and never GitHub's (CEO 2026-11-20): the farm's sccache store, which the runner's .env names
+      # (kq-farm install/runner-env), and the runner's own ~/.cargo, whose registry is already warm. No rust-cache step runs there, so nothing
+      # trims that cargo home, which is why the job-local cargo home of 2026-11-06 left. Its old GitHub caches were macOS entries that no hosted
+      # job could read, and they filled the 10 GB each repository has (kq-core-backend held 10.4 GB on 2026-11-20).
       # A hosted runner: sccache with GitHub's cache as its store. Each compiled unit is stored as it finishes, so a run cancelled at its
       # limit still leaves its work to the next, and cc-rs routes C and C++ through the same RUSTC_WRAPPER (cc 1.2,
       # rustc_wrapper_fallback). Without it, kq-l1-data-engineering#226's lint compiled the bundled DuckDB from source for 25 minutes and
@@ -211,8 +222,6 @@ jobs:
       - name: The runner's compile cache and cargo home
         run: | # zizmor: ignore[github-env] fixed values and a path under the runner's own temp folder, with no value from the event
           if [ "$RUNNER_ENVIRONMENT" = "self-hosted" ]; then
-            mkdir -p "$RUNNER_TEMP/cargo-home"
-            echo "CARGO_HOME=$RUNNER_TEMP/cargo-home" >> "$GITHUB_ENV"
             echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
           else
             echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
@@ -251,20 +260,19 @@ jobs:
           toolchain: ${{ inputs.rust-toolchain }}
           components: rustfmt, clippy
 
-      # The mini restores the cache cache-seed.yml saves on each merge (key `gate`, macOS), and saves nothing. A hosted run saves its own,
-      # which that PR's next run restores, keyed by Cargo.lock and by its LANE: one shared key let the lint lane save clippy's metadata first,
+      # A hosted runner only: the mini compiles from its local stores and restores nothing from GitHub. A hosted run saves its own cache,
+      # which that PR's next run restores, and the seed run on main saves the one every new PR into main restores, keyed by Cargo.lock and by its LANE: one shared key let the lint lane save clippy's metadata first,
       # and the test lanes then restored that key, compiled every crate again and could never save over a full match (kq-core-backend#246,
       # 2026-11-20: test-unit and boundary cancelled at 14 minutes, still compiling dependencies). A hosted lane also saves when it fails
       # or is cancelled at its limit, so a cold first run leaves its compiled dependencies to the next run instead of nothing.
       - name: Restore the Rust cache
-        if: inputs.rust-workspaces != ''
+        if: inputs.rust-workspaces != '' && runner.environment == 'github-hosted'
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           workspaces: ${{ inputs.rust-workspaces }}
           cache-bin: false
-          shared-key: ${{ runner.environment == 'github-hosted' && format('gate-{0}', matrix.lane) || 'gate' }}
-          cache-on-failure: ${{ runner.environment == 'github-hosted' }}
-          save-if: ${{ runner.environment == 'github-hosted' }}
+          shared-key: gate-${{ matrix.lane }}
+          cache-on-failure: true
 
       - name: Install Node
         if: inputs.node-version != ''
@@ -288,10 +296,20 @@ jobs:
       - name: The lane's own script
         env:
           LANE: ${{ matrix.lane }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          EVENT: ${{ github.event_name }}
           CONTRACTS_READ_TOKEN: ${{ secrets.CONTRACTS_READ_TOKEN }}
         run: |
           set -euo pipefail
+          # A PR lints and tests what its diff changed. The seed run compares against the repository's first commit, so every crate reads as
+          # changed and main's cache holds the whole workspace: an empty base reads as origin/main in several lane scripts, which on main after
+          # the merge selects nothing, and the PR's own base selects nothing when the merged PR changed only workflow files.
+          if [ "$EVENT" = "pull_request_target" ]; then
+            BASE_SHA="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+          else
+            BASE_SHA="$PR_BASE_SHA"
+          fi
+          export BASE_SHA
           script="scripts/ci/gate/${LANE}.sh"
           if [ ! -f "$script" ]; then
             echo "::error::lane '${LANE}' has no script ${script} in this repository"
@@ -304,8 +322,8 @@ jobs:
   # (runner-policy.md, How a change rolls out).
   runner-routing-guard:
     if: github.event_name == 'workflow_dispatch'
-    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-runner-routing-guard.yml@v2.2.0
+    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-runner-routing-guard.yml@v2.3.0
 
   gitignore-guard:
     if: github.event_name == 'workflow_dispatch'
-    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-gitignore-guard.yml@v2.2.0
+    uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-gitignore-guard.yml@v2.3.0
