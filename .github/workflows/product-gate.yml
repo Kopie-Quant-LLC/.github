@@ -18,8 +18,14 @@
 # the runner's own key. On a hosted runner the gate routes those SSH URLs to HTTPS with the read token SIBLING_READ_TOKEN, so the same script
 # runs unchanged on both runners.
 #
-# No job here asks for more than `contents: read`: a called workflow can only lower its caller's token, and a job that asks for more stops the
-# whole run before it starts. kq-infra's OIDC plan, which needs id-token: write, is reusable-terraform-plan.yml, called beside this gate.
+# A failure stops the whole run of a pull request (CEO, 2026-11-24: no runner keeps paying for a gate that is already red). Two parts:
+#   the lane matrix is fail-fast on a pull_request, so the first red lane cancels its sibling lanes, with no permission needed;
+#   each job's last step cancels the whole run when the job failed (`Stop the run on a failure`), which reaches the security and intake jobs too.
+# That step needs `actions: write`, so each job asks for it beside `contents: read`. A called workflow can only lower its caller's token, and a
+# job that asks for more than the caller grants stops the whole run before it starts: a caller of v2.4.0 or later grants the gate job
+#   permissions: { contents: read, actions: write }
+# The seed run (pull_request_target) and a dispatch never stop early: the seed must save main's cache (CEO 2026-11-20).
+# kq-infra's OIDC plan, which needs id-token: write, is reusable-terraform-plan.yml, called beside this gate.
 
 name: product-gate
 
@@ -114,6 +120,9 @@ env:
 jobs:
   intake:
     name: Format (intake)
+    permissions:
+      contents: read
+      actions: write
     if: github.event_name == 'pull_request' && github.base_ref != 'main'
     runs-on: ${{ fromJSON(github.base_ref == 'main' && (vars.KQ_RUNNER_PR_MAIN || '["ubuntu-latest"]') || (vars.KQ_RUNNER_PR_INTEGRATION || '["self-hosted","macOS","ARM64"]')) }}
     timeout-minutes: 5
@@ -140,8 +149,29 @@ jobs:
           INTAKE: ${{ inputs.intake }}
         run: bash -c "$INTAKE"
 
+      # The run stops on this job's failure (CEO, 2026-11-24): the lanes still running are cancelled, so no runner pays for a gate that is
+      # already red. A pull request only; the caller grants actions: write (the header).
+      - name: Stop the run on a failure
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          API: ${{ github.api_url }}
+          REPO: ${{ github.repository }}
+          RUN: ${{ github.run_id }}
+        run: |
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" "${API}/repos/${REPO}/actions/runs/${RUN}/cancel")"
+          echo "cancel run ${RUN}: HTTP ${code}"
+          case "$code" in
+            202|409) ;;
+            *) echo "::warning::the run was not stopped (HTTP ${code}): the caller's gate job grants actions: write from v2.4.0" ;;
+          esac
+
   security:
     name: security
+    permissions:
+      contents: read
+      actions: write
     runs-on: ${{ fromJSON(github.base_ref == 'main' && (vars.KQ_RUNNER_PR_MAIN || '["ubuntu-latest"]') || (vars.KQ_RUNNER_PR_INTEGRATION || '["self-hosted","macOS","ARM64"]')) }}
     timeout-minutes: ${{ inputs.security-timeout-minutes }}
     steps:
@@ -191,8 +221,29 @@ jobs:
           "$RUNNER_TEMP/zizmor/bin/pip" install --quiet "zizmor==${VERSION}"
           "$RUNNER_TEMP/zizmor/bin/zizmor" --offline .github/workflows/
 
+      # The run stops on this job's failure (CEO, 2026-11-24): the lanes still running are cancelled, so no runner pays for a gate that is
+      # already red. A pull request only; the caller grants actions: write (the header).
+      - name: Stop the run on a failure
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          API: ${{ github.api_url }}
+          REPO: ${{ github.repository }}
+          RUN: ${{ github.run_id }}
+        run: |
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" "${API}/repos/${REPO}/actions/runs/${RUN}/cancel")"
+          echo "cancel run ${RUN}: HTTP ${code}"
+          case "$code" in
+            202|409) ;;
+            *) echo "::warning::the run was not stopped (HTTP ${code}): the caller's gate job grants actions: write from v2.4.0" ;;
+          esac
+
   lane:
     name: ${{ matrix.lane }}
+    permissions:
+      contents: read
+      actions: write
     if: inputs.lanes != '[]' && (github.event_name != 'pull_request' || github.base_ref == 'main')
     runs-on: ${{ fromJSON(github.base_ref == 'main' && (vars.KQ_RUNNER_PR_MAIN || '["ubuntu-latest"]') || (vars.KQ_RUNNER_PR_INTEGRATION || '["self-hosted","macOS","ARM64"]')) }}
     # The seed run (pull_request_target, after a merge into main) builds the whole repository from a cold cache, so it takes the seed's limit.
@@ -201,7 +252,8 @@ jobs:
     # never saved main's Linux cache, so every PR into main compiled from nothing on a 2-core runner (kq-core-backend#248, 2026-11-20).
     cache-mode: write
     strategy:
-      fail-fast: false
+      # A pull request stops its other lanes on the first red one (CEO, 2026-11-24). The seed and a dispatch run every lane to its end.
+      fail-fast: ${{ github.event_name == 'pull_request' }}
       matrix:
         lane: ${{ fromJSON(inputs.lanes) }}
     steps:
@@ -320,6 +372,24 @@ jobs:
   # The guards run once, from here, on a person's dispatch (they left the PR tier on 2026-11-01). They are named by full path at this
   # file's own tag: a `./` path inside a called workflow reads the caller's workspace, and a new tag moves these two refs in the same commit
   # (runner-policy.md, How a change rolls out).
+
+      # The run stops on this job's failure (CEO, 2026-11-24): the lanes still running are cancelled, so no runner pays for a gate that is
+      # already red. A pull request only; the caller grants actions: write (the header).
+      - name: Stop the run on a failure
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          API: ${{ github.api_url }}
+          REPO: ${{ github.repository }}
+          RUN: ${{ github.run_id }}
+        run: |
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" "${API}/repos/${REPO}/actions/runs/${RUN}/cancel")"
+          echo "cancel run ${RUN}: HTTP ${code}"
+          case "$code" in
+            202|409) ;;
+            *) echo "::warning::the run was not stopped (HTTP ${code}): the caller's gate job grants actions: write from v2.4.0" ;;
+          esac
   runner-routing-guard:
     if: github.event_name == 'workflow_dispatch'
     uses: Kopie-Quant-LLC/.github/.github/workflows/reusable-runner-routing-guard.yml@v2.3.0
